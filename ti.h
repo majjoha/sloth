@@ -16,7 +16,7 @@ typedef struct SCData {
 } sc_data_t;
 
 typedef struct TiNode {
-  enum type { NUM, SC, APP };
+  enum { NUM, SC, APP } type;
   union {
     app_data_t app_data;
     sc_data_t sc_data;
@@ -24,16 +24,18 @@ typedef struct TiNode {
   } data;
 } ti_node_t;
 
-typedef struct AssociationGlobal {
+typedef sc_data_t sc_defn_t;
+
+typedef struct Global {
   char* name;
   address_t address;
-} association_global_t;
+} global_t;
 
-typedef association_global_t* globals_t;
+typedef list* globals_t;
 
 typedef struct AssociationObject {
   int address;
-  ti_node_t object;
+  ti_node_t* object;
 } association_object_t;
 
 typedef struct Heap {
