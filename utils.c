@@ -1,6 +1,11 @@
 #include "ti.h"
 #include <stdlib.h>
 
+int main(int argc, const char *argv[])
+{
+  return 0;
+}
+
 heap_t* heap_initial() {
   heap_t* heap = (heap_t *) malloc(sizeof(heap_t));
   heap->count = 0;
