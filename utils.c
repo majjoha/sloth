@@ -1,10 +1,6 @@
 #include "ti.h"
 #include <stdlib.h>
-
-int main(int argc, const char *argv[])
-{
-  return 0;
-}
+#include <stdio.h>
 
 heap_t* heap_initial() {
   heap_t* heap = (heap_t *) malloc(sizeof(heap_t));
@@ -43,3 +39,51 @@ global_t* allocate_sc(heap_t* heap, sc_defn_t* sc) {
 
   return sc_global;
 }
+
+globals_t* build_initial_heap(heap_t* heap, sc_defn_t** scs, int sc_count)
+{
+    globals_t *globals = list_new();
+    for (int i = 0; i < sc_count; i++)
+    {
+        global_t* global = allocate_sc(heap, *scs++);
+        list_add_anything(globals, global);
+    }
+    return globals;
+}
+
+
+int main(int argc, const char *argv[])
+{
+  sc_defn_t *scs[1]; 
+  sc_defn_t *sc = malloc(sizeof(sc_defn_t));
+  sc->sc_name = "main";
+  char *a[2];
+  a[0] = "blah";
+  a[1] = "hmm";
+  sc->arg_names = a;
+  expr_t *e = malloc(sizeof(expr_t));
+  e->data.e_num = 1;
+  e->tag = NUM;
+  sc->expr = e;
+  scs[0] = sc;
+  heap_t *heap = heap_initial();
+  globals_t* globals = build_initial_heap(heap, scs, 1);
+  node_t* global_node = list_remove(globals);
+  global_t* global = global_node->elm;
+  printf("sc name: %s\n", global->name);
+  printf("sc address: %d\n", global->address);
+  printf("heap size: %d\n", heap->count);
+  node_t* node;
+  while ((node = list_remove(heap->unused_addresses)) != NULL)
+  {
+    int *address = (int *)node->elm;
+    printf("unused address: %d\n", *address);
+  }
+  //printf("heap ")
+  return 0;
+}
+
+
+
+
+

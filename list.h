@@ -39,4 +39,6 @@ node_t *node_new_anything(void* anything);
 /* return a new node structure */
 node_t *node_new_str(char *s);     /* return a new node structure, where elm points to new copy of string s */
 
+void list_add_anything(list_t *list, void *anything);
+
 #endif

@@ -73,3 +73,8 @@ node_t *node_new_str(char *s) {
     n->next = NULL;
     return n;
 }
+
+void list_add_anything(list_t *list, void *anything)
+{
+    list_add(list, node_new_anything(anything));
+}

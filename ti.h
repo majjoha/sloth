@@ -31,7 +31,7 @@ typedef struct Global {
   address_t address;
 } global_t;
 
-typedef list* globals_t;
+typedef list_t globals_t;
 
 typedef struct AssociationObject {
   int address;
