@@ -2,12 +2,116 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+ti_node_t* heap_lookup(heap_t* heap, address_t address) {
+  node_t* node = heap->associations->first;
+  while ((node = node->next) != NULL) {
+    association_object_t* association_node = (association_object_t*) node->elm;
+    if (address == association_node->address) {
+      return association_node->object;
+    }
+  }
+  
+  return NULL;
+}
+
+int is_data_node(ti_node_t* node) {
+  if (node->type == NUM) {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+state_t* eval(state_t* states) {
+
+}
+
+void step(state_t* state) {
+
+  
+}
+
+void stack_init(ti_stack_t* stack) {
+  stack->max_size = 10000;
+  stack->contents = malloc(sizeof(address_t)*stack->max_size);
+  stack->top = 0;
+}
+
+address_t stack_pop(ti_stack_t* stack) {
+  if (stack->top != 0) {
+    int* stack_top = &stack->top;
+    (*stack_top)--;
+    int top = stack->contents[*stack_top];
+    return top;
+  }
+
+  return -1;
+}
+
+void stack_push(ti_stack_t* stack, address_t address) {
+  if (stack->top < stack->max_size) {
+    stack->contents[stack->top++] = address;
+  }
+}
+
+address_t* get_args(ti_stack_t* stack, heap_t* heap) {
+  address_t* args = malloc(sizeof(address_t)*(stack->top-1));
+  for (int i = stack->top - 2; i >= 0; i--) {
+    ti_node_t* node = heap_lookup(heap, stack->contents[i]);
+    if (node->type == APP) {
+      args[i] = node->data.app_data.address2;
+    } else {
+      exit(1);
+    }
+  }
+}
+
+void num_step(state_t* state, int n) {
+  printf("Number applied as a function!\n");
+}
+
+void sc_step(state_t* state, sc_data_t sc_data) {
+}
+
+void app_step(state_t* state, app_data_t app_data) {
+}
+
+void dispatch(ti_stack_t* stack, state_t* state) {
+  address_t address = stack_pop(stack);
+  ti_node_t* node = heap_lookup(state->heap, address);
+  switch (node->type) {
+    case NUM:
+      num_step(state, node->data.num_data);
+      break;
+    case SC:
+      sc_step(state, node->data.sc_data);
+      break;
+    case APP:
+      app_step(state, node->data.app_data);
+      break;
+  }
+}
+
+int ti_final(ti_stack_t* stack, address_t address, heap_t* heap) {
+  if (stack->top == 0) {
+    printf("Empty stack!\n");
+  }
+
+  if (stack->top > 1) {
+    return FALSE;
+  }
+
+  return is_data_node(heap_lookup(heap, address));
+}
+
 heap_t* heap_initial() {
   heap_t* heap = (heap_t *) malloc(sizeof(heap_t));
   heap->count = 0;
   heap->unused_addresses = list_new();
   for(int i = 1; i <= 100; i++) {
-    list_add(heap->unused_addresses, node_new_anything(&i));
+    int* j = malloc(sizeof(int));
+    *j = i;
+    list_add(heap->unused_addresses, node_new_anything(j));
   }
   heap->associations = list_new();
   return heap;
