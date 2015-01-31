@@ -18,8 +18,8 @@ struct Expr {
   union {
     e_variable_t e_variable;
     e_num_t e_num;
-    e_application_t e_application;
+    e_application_t* e_application;
     e_let_t e_let;
   } data;
-  enum { VAR, NUM, APP, LET } tag;
+  enum { VAR, E_NUM, APP, LET } tag;
 }; 

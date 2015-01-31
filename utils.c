@@ -1,6 +1,7 @@
 #include "ti.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 ti_node_t* heap_lookup(heap_t* heap, address_t address) {
   node_t* node = heap->associations->first;
@@ -62,6 +63,73 @@ address_t* get_args(ti_stack_t* stack, heap_t* heap) {
       args[i] = node->data.app_data.address2;
     } else {
       exit(1);
+    }
+  }
+}
+
+void create_num_node(int n, ti_node_t* node)
+{
+  node->type = NUM;
+  node->data.num_data = n;
+} 
+
+address_t binding_lookup(char* name, list_t* bindings)
+{
+  node_t* node = bindings->first;
+  while ((node = node->next) != NULL)
+  {
+    binding_t* binding = (binding_t*) node->elm;
+    if (strcmp(binding->name, name) == 0)
+    {
+      return binding->address;
+    }
+  }
+  return -1;
+}
+
+address_t a_lookup(char* name, list_t* bindings, globals_t* globals)
+{
+  address_t address = binding_lookup(name, bindings);
+  if (address == -1)
+  {
+    address = binding_lookup(name, globals);
+  }
+  return address;
+}
+
+address_t instantiate(expr_t* body, heap_t* heap, globals_t* globals, list_t* bindings)
+{
+  switch (body->tag)
+  {
+    case E_NUM:
+      {
+      int n = body->data.e_num;
+      ti_node_t* node = malloc(sizeof(ti_node_t));
+      create_num_node(n, node);
+      return heap_alloc(heap, node);
+    }
+    case VAR:
+      {
+        char* name = body->data.e_variable;
+        address_t address = a_lookup(name, bindings, globals);
+        if (address == -1)
+        {
+          exit(1);
+        }
+        return address;
+      }
+    case APP:
+    {
+      e_application_t* app = body->data.e_application;
+      address_t a1 = instantiate(app->expr1, heap, globals, bindings);
+      address_t a2 = instantiate(app->expr2, heap, globals, bindings);
+      ti_node_t* node = malloc (sizeof(ti_node_t));
+      node->type = APP;
+      app_data_t* app_data = malloc(sizeof(app_data_t));
+      app_data->address1 = a1;
+      app_data->address2 = a2;
+      node->data.app_data = *app_data;
+      return heap_alloc(heap, node);
     }
   }
 }
@@ -132,12 +200,12 @@ int heap_alloc(heap_t* heap, ti_node_t* ti_node) {
   return next_address;
 }
 
-global_t* allocate_sc(heap_t* heap, sc_defn_t* sc) {
+binding_t* allocate_sc(heap_t* heap, sc_defn_t* sc) {
   ti_node_t* sc_node = malloc(sizeof(ti_node_t));
   sc_node->type = SC;
   sc_node->data.sc_data = *sc;
   int sc_address = heap_alloc(heap, sc_node);
-  global_t* sc_global = malloc(sizeof(global_t));
+  binding_t* sc_global = malloc(sizeof(binding_t));
   sc_global->name = sc->sc_name;
   sc_global->address = sc_address;
 
@@ -149,7 +217,7 @@ globals_t* build_initial_heap(heap_t* heap, sc_defn_t** scs, int sc_count)
     globals_t *globals = list_new();
     for (int i = 0; i < sc_count; i++)
     {
-        global_t* global = allocate_sc(heap, *scs++);
+        binding_t* global = allocate_sc(heap, *scs++);
         list_add_anything(globals, global);
     }
     return globals;
@@ -168,12 +236,12 @@ int main(int argc, const char *argv[])
   expr_t *e = malloc(sizeof(expr_t));
   e->data.e_num = 1;
   e->tag = NUM;
-  sc->expr = e;
+  sc->body = e;
   scs[0] = sc;
   heap_t *heap = heap_initial();
   globals_t* globals = build_initial_heap(heap, scs, 1);
   node_t* global_node = list_remove(globals);
-  global_t* global = global_node->elm;
+  binding_t* global = global_node->elm;
   printf("sc name: %s\n", global->name);
   printf("sc address: %d\n", global->address);
   printf("heap size: %d\n", heap->count);

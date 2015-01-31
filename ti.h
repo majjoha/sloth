@@ -20,7 +20,7 @@ typedef struct AppData {
 typedef struct SCData {
   char* sc_name;
   char** arg_names;
-  expr_t* expr;
+  expr_t* body;
 } sc_data_t;
 
 typedef struct TiNode {
@@ -34,10 +34,10 @@ typedef struct TiNode {
 
 typedef sc_data_t sc_defn_t;
 
-typedef struct Global {
+typedef struct Binding {
   char* name;
   address_t address;
-} global_t;
+} binding_t;
 
 typedef list_t globals_t;
 
