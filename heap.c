@@ -32,6 +32,16 @@ int heap_alloc(heap_t* heap, ti_node_t* ti_node) {
   return next_address;
 }
 
+void heap_update(heap_t* heap, address_t address, ti_node_t* new_node) {
+  node_t* node = heap->associations->first;
+  while ((node = node->next) != NULL) {
+    association_object_t* association_node = (association_object_t*) node->elm;
+    if (address == association_node->address) {
+      association_node->object = new_node;
+    }
+  }
+}
+
 heap_t* heap_init() {
   heap_t* heap = (heap_t *) malloc(sizeof(heap_t));
   heap->count = 0;

@@ -18,11 +18,12 @@ typedef struct SCData {
 } sc_data_t;
 
 typedef struct TiNode {
-  enum { NUM, SC, APP } type;
+  enum { NUM, SC, APP, PRIM } type;
   union {
     app_data_t app_data;
     sc_data_t sc_data;
     int num_data;
+    enum { NEG } prim_data;
   } data;
 } ti_node_t;
 

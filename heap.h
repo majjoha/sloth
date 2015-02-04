@@ -19,6 +19,8 @@ ti_node_t* heap_lookup(heap_t* heap, address_t address);
 
 int heap_alloc(heap_t* heap, ti_node_t* ti_node);
 
+void heap_update(heap_t* heap, address_t address, ti_node_t* new_node);
+
 heap_t* heap_init();
 
 #endif

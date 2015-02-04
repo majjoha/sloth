@@ -17,14 +17,19 @@ typedef struct Let {
   expr_t* body; 
 } e_let_t;
 
+typedef struct Prim {
+  enum { NEG } op;
+} e_prim_t;
+
 struct Expr {
   union {
     e_variable_t e_variable;
     e_num_t e_num;
     e_application_t* e_application;
     e_let_t e_let;
+    e_prim_t e_prim;
   } data;
-  enum { VAR, E_NUM, APP, LET } tag;
+  enum { VAR, E_NUM, APP, LET, E_PRIM } tag;
 }; 
 
 #endif

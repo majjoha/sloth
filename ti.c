@@ -13,8 +13,8 @@ int is_data_node(ti_node_t* node) {
 }
 
 address_t* get_args(ti_stack_t* stack, heap_t* heap) {
-  address_t* args = malloc(sizeof(address_t)*(stack->top-1));
-  for (int i = stack->top - 2; i >= 0; i--) {
+  address_t* args = malloc(sizeof(address_t)*(stack->top-stack->offset));
+  for (int i = stack->top - 1; i >= stack->offset; i--) {
     ti_node_t* ti_node = heap_lookup(heap, stack->contents[i]);
     if (ti_node->type == APP) {
       args[i] = ti_node->data.app_data.address2;
@@ -91,6 +91,14 @@ address_t instantiate(expr_t* body, heap_t* heap, globals_t* globals, list_t* bi
     }
     case LET:
       return -1;
+    case E_PRIM:
+    {
+      e_prim_t prim = body->data.e_prim;
+      ti_node_t* node = malloc(sizeof(ti_node_t));
+      node->type = PRIM;
+      node->data.prim_data = prim.op;
+      return heap_alloc(heap, node);
+    }
   }
 }
 
@@ -113,7 +121,7 @@ void sc_step(state_t* state, sc_data_t sc_data) {
 
   address_t result_address = instantiate(sc_data.body, state->heap, state->globals, bindings);
 
-  for (int i = 0; i < sc_data.arg_names_count+1; i++)
+  for (int i = 0; i < sc_data.arg_names_count; i++)
   {
     stack_pop(state->stack);
   }
@@ -122,6 +130,31 @@ void sc_step(state_t* state, sc_data_t sc_data) {
 
 void app_step(state_t* state, app_data_t app_data) {
   stack_push(state->stack, app_data.address1);
+}
+
+void prim_step(state_t* state, int prim_data) {
+  switch(prim_data) {
+    case NEG:
+    {
+      address_t address = state->stack->contents[state->stack->top-1];
+      ti_node_t* node = heap_lookup(state->heap, address);
+      if (node->type == APP) {
+        address_t address = node->data.app_data.address2;
+        ti_node_t* node2 = heap_lookup(state->heap, address);
+
+        if (node2->type == NUM) {
+          heap_update(state->heap, address, node2);
+        } else {
+          push_new_stack(state->stack);
+          stack_push(state->stack, node->data.app_data.address2);
+        }
+      } else {
+        printf("Primitive is not applied to APP node.");
+        exit(1);
+      }
+      break;
+    }
+  }
 }
 
 void dispatch(state_t* state) {
@@ -137,23 +170,34 @@ void dispatch(state_t* state) {
     case APP:
       app_step(state, node->data.app_data);
       break;
+    case PRIM:
+      prim_step(state, node->data.prim_data);
+      break;
   }
 }
 
 int ti_final(ti_stack_t* stack, heap_t* heap) {
-  if (stack->top == 0) {
+  if (stack->top == stack->offset) {
     printf("Empty stack!\n");
     exit(1);
   }
 
-  if (stack->top > 1) {
+  if (stack->top > stack->offset) {
     return FALSE;
   }
 
-  ti_node_t* node = heap_lookup(heap, stack->contents[0]);
+  ti_node_t* node = heap_lookup(heap, stack->contents[stack->offset]);
   if (is_data_node(node))
   {
-    return TRUE;
+    if (stack->contents[stack->offset-2] == DUMP_BOTTOM) {
+      return TRUE;
+    } else {
+      stack_pop(stack);
+      stack_pop(stack);
+      address_t offset = stack_pop(stack);
+      stack->offset = offset;
+      return FALSE;
+    }
   }
   else 
   {
@@ -203,10 +247,23 @@ int main(int argc, const char *argv[])
   // a[1] = "hmm";
   sc->arg_names = a;
   sc->arg_names_count = 0;
-  expr_t *e = malloc(sizeof(expr_t));
-  e->data.e_num = 1;
-  e->tag = E_NUM;
-  sc->body = e;
+
+
+  expr_t *e1 = malloc(sizeof(expr_t));
+  e1->data.e_prim.op = NEG;
+  e1->tag = E_PRIM;
+
+  expr_t *e2 = malloc(sizeof(expr_t));
+  e2->data.e_num = 1;
+  e2->tag = E_NUM;
+
+  expr_t *app = malloc(sizeof(expr_t));
+  app->data.e_application = malloc(sizeof(e_application_t));
+  app->data.e_application->expr1 = e1;
+  app->data.e_application->expr2 = e2;
+  app->tag = APP;
+
+  sc->body = app;
   scs[0] = sc;
   heap_t *heap = heap_init();
   globals_t* globals = build_initial_heap(heap, scs, 1);
@@ -240,8 +297,3 @@ int main(int argc, const char *argv[])
   //printf("heap ")
   return 0;
 }
-
-
-
-
-
