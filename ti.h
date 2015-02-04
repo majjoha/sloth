@@ -20,6 +20,7 @@ typedef struct AppData {
 typedef struct SCData {
   char* sc_name;
   char** arg_names;
+  int arg_names_count;
   expr_t* body;
 } sc_data_t;
 
