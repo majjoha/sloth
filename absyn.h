@@ -1,3 +1,6 @@
+#ifndef _ABSYN_H
+#define _ABSYN_H
+
 typedef char* e_variable_t; 
 
 typedef int e_num_t;
@@ -23,3 +26,5 @@ struct Expr {
   } data;
   enum { VAR, E_NUM, APP, LET } tag;
 }; 
+
+#endif

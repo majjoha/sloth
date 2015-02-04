@@ -1,35 +1,8 @@
 #include "ti.h"
+#include "stack.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-ti_node_t* heap_lookup(heap_t* heap, address_t address) {
-  node_t* node = heap->associations->first;
-  while ((node = node->next) != NULL) {
-    association_object_t* association_node = (association_object_t*) node->elm;
-    if (address == association_node->address) {
-      return association_node->object;
-    }
-  }
-  
-  printf("Did not find anything in heap_lookup\n");
-  return NULL;
-}
-
-int heap_alloc(heap_t* heap, ti_node_t* ti_node) {
-  heap->count++;
-
-  node_t* next_address_node = list_remove(heap->unused_addresses);
-  int next_address = *((int *) next_address_node->elm);
-
-  association_object_t* temp_assoc_obj = malloc(sizeof(association_object_t));
-  temp_assoc_obj->address = next_address;
-  temp_assoc_obj->object = ti_node;
-
-  list_add(heap->associations, node_new_anything(temp_assoc_obj));
-
-  return next_address;
-}
 
 int is_data_node(ti_node_t* node) {
   if (node->type == NUM) {
@@ -37,29 +10,6 @@ int is_data_node(ti_node_t* node) {
   }
 
   return FALSE;
-}
-
-void stack_init(ti_stack_t* stack) {
-  stack->max_size = 10000;
-  stack->contents = malloc(sizeof(address_t)*stack->max_size);
-  stack->top = 0;
-}
-
-address_t stack_pop(ti_stack_t* stack) {
-  if (stack->top != 0) {
-    int* stack_top = &stack->top;
-    (*stack_top)--;
-    int top = stack->contents[*stack_top];
-    return top;
-  }
-
-  return -1;
-}
-
-void stack_push(ti_stack_t* stack, address_t address) {
-  if (stack->top < stack->max_size) {
-    stack->contents[stack->top++] = address;
-  }
 }
 
 address_t* get_args(ti_stack_t* stack, heap_t* heap) {
@@ -220,19 +170,6 @@ void eval(state_t *state)
   }
 }
 
-heap_t* heap_init() {
-  heap_t* heap = (heap_t *) malloc(sizeof(heap_t));
-  heap->count = 0;
-  heap->unused_addresses = list_new();
-  for(int i = 1; i <= 100; i++) {
-    int* j = malloc(sizeof(int));
-    *j = i;
-    list_add(heap->unused_addresses, node_new_anything(j));
-  }
-  heap->associations = list_new();
-  return heap;
-}
-
 binding_t* allocate_sc(heap_t* heap, sc_defn_t* sc) {
   ti_node_t* sc_node = malloc(sizeof(ti_node_t));
   sc_node->type = SC;
@@ -255,7 +192,6 @@ globals_t* build_initial_heap(heap_t* heap, sc_defn_t** scs, int sc_count)
     }
     return globals;
 }
-
 
 int main(int argc, const char *argv[])
 {
