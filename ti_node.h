@@ -27,4 +27,6 @@ typedef struct TiNode {
   } data;
 } ti_node_t;
 
+void print_ti_node(ti_node_t* node);
+
 #endif

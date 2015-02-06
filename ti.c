@@ -14,11 +14,13 @@ int is_data_node(ti_node_t* node) {
 
 address_t* get_args(ti_stack_t* stack, heap_t* heap) {
   address_t* args = malloc(sizeof(address_t)*(stack->top-stack->offset));
-  for (int i = stack->top - 1; i >= stack->offset; i--) {
+  for (int i = stack->top - 2; i >= stack->offset; i--) {
     ti_node_t* ti_node = heap_lookup(heap, stack->contents[i]);
     if (ti_node->type == APP) {
       args[i] = ti_node->data.app_data.address2;
     } else {
+      print_stack(stack);
+      printf("Exiting due to argument to supercombinator is not application node.\n");
       exit(1);
     }
   }
@@ -121,7 +123,7 @@ void sc_step(state_t* state, sc_data_t sc_data) {
 
   address_t result_address = instantiate(sc_data.body, state->heap, state->globals, bindings);
 
-  for (int i = 0; i < sc_data.arg_names_count; i++)
+  for (int i = 0; i < sc_data.arg_names_count+1; i++)
   {
     stack_pop(state->stack);
   }
@@ -136,11 +138,11 @@ void prim_step(state_t* state, int prim_data) {
   switch(prim_data) {
     case NEG:
     {
-      address_t address = state->stack->contents[state->stack->top-1];
+      address_t address = state->stack->contents[state->stack->top-2];
       ti_node_t* node = heap_lookup(state->heap, address);
       if (node->type == APP) {
-        address_t address = node->data.app_data.address2;
-        ti_node_t* node2 = heap_lookup(state->heap, address);
+        address_t address2 = node->data.app_data.address2;
+        ti_node_t* node2 = heap_lookup(state->heap, address2);
 
         if (node2->type == NUM) {
           heap_update(state->heap, address, node2);
@@ -148,8 +150,11 @@ void prim_step(state_t* state, int prim_data) {
           push_new_stack(state->stack);
           stack_push(state->stack, node->data.app_data.address2);
         }
+      } else if (node->type == NUM) {
+        node->data.num_data = -node->data.num_data;
+        stack_pop(state->stack);
       } else {
-        printf("Primitive is not applied to APP node.");
+        printf("Primitive is not applied to APP node.\n");
         exit(1);
       }
       break;
@@ -158,7 +163,7 @@ void prim_step(state_t* state, int prim_data) {
 }
 
 void dispatch(state_t* state) {
-  address_t address = stack_pop(state->stack);
+  address_t address = stack_peek(state->stack);
   ti_node_t* node = heap_lookup(state->heap, address);
   switch (node->type) {
     case NUM:
@@ -182,7 +187,7 @@ int ti_final(ti_stack_t* stack, heap_t* heap) {
     exit(1);
   }
 
-  if (stack->top > stack->offset) {
+  if (stack->top > stack->offset+1) {
     return FALSE;
   }
 
@@ -254,7 +259,7 @@ int main(int argc, const char *argv[])
   e1->tag = E_PRIM;
 
   expr_t *e2 = malloc(sizeof(expr_t));
-  e2->data.e_num = 1;
+  e2->data.e_num = 42;
   e2->tag = E_NUM;
 
   expr_t *app = malloc(sizeof(expr_t));
@@ -263,21 +268,21 @@ int main(int argc, const char *argv[])
   app->data.e_application->expr2 = e2;
   app->tag = APP;
 
-  sc->body = app;
+  expr_t *neg = malloc(sizeof(expr_t));
+  neg->data.e_prim.op = NEG;
+  neg->tag = E_PRIM;
+
+  expr_t* negneg = malloc(sizeof(expr_t));
+  negneg->data.e_application = malloc(sizeof(e_application_t));
+  negneg->data.e_application->expr1 = neg;
+  negneg->data.e_application->expr2 = app;
+  negneg->tag = APP;
+
+  sc->body = negneg;
   scs[0] = sc;
   heap_t *heap = heap_init();
   globals_t* globals = build_initial_heap(heap, scs, 1);
-  // node_t* global_node = list_remove(globals);
-  // binding_t* global = global_node->elm;
-  // printf("sc name: %s\n", global->name);
-  // printf("sc address: %d\n", global->address);
-  // printf("heap size: %d\n", heap->count);
-  // node_t* node;
-  // while ((node = list_remove(heap->unused_addresses)) != NULL)
-  // {
-  //   int *address = (int *)node->elm;
-  //   printf("unused address: %d\n", *address);
-  // }
+
   ti_stack_t *stack = malloc(sizeof(ti_stack_t));
   stack_init(stack);
   binding_t* binding = (binding_t*) globals->first->next->elm;
@@ -294,6 +299,5 @@ int main(int argc, const char *argv[])
   address_t result = stack_pop(state->stack);
   ti_node_t *result_node = heap_lookup(state->heap, result);
   printf("Result: %d\n", result_node->data.num_data);
-  //printf("heap ")
   return 0;
 }

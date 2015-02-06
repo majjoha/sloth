@@ -16,9 +16,12 @@ typedef struct Stack {
 void stack_init(ti_stack_t* stack);
 
 address_t stack_pop(ti_stack_t* stack);
+address_t stack_peek(ti_stack_t* stack);
 
 void stack_push(ti_stack_t* stack, address_t address);
 
 void push_new_stack(ti_stack_t* stack);
+
+void print_stack(ti_stack_t* stack);
 
 #endif
