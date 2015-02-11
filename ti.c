@@ -39,6 +39,9 @@ address_t binding_lookup(char* name, list_t* bindings)
   while ((node = node->next) != NULL)
   {
     binding_t* binding = (binding_t*) node->elm;
+
+    printf("Name in binding_lookup: %s\n", name);
+    printf("Address in binding_looup: %lu\n", (long) name);
     if (strcmp(binding->name, name) == 0)
     {
       return binding->address;
@@ -70,7 +73,9 @@ address_t instantiate(expr_t* body, heap_t* heap, globals_t* globals, list_t* bi
     }
     case VAR:
       {
-        char* name = body->data.e_variable;
+        char* name = *body->data.e_variable;
+        printf("%s\n", name);
+        printf("%lu\n", (long) name);
         address_t address = a_lookup(name, bindings, globals);
         if (address == -1)
         {
@@ -223,6 +228,8 @@ binding_t* allocate_sc(heap_t* heap, sc_defn_t* sc) {
   ti_node_t* sc_node = malloc(sizeof(ti_node_t));
   sc_node->type = SC;
   sc_node->data.sc_data = *sc;
+  /* printf("In allocate_sc: %s\n", *sc_node->data.sc_data.body->data.e_variable); */
+  /* printf("In allocate_sc: %s\n", *sc->body->data.e_variable); */
   int sc_address = heap_alloc(heap, sc_node);
   binding_t* sc_global = malloc(sizeof(binding_t));
   sc_global->name = sc->sc_name;
@@ -234,9 +241,12 @@ binding_t* allocate_sc(heap_t* heap, sc_defn_t* sc) {
 globals_t* build_initial_heap(heap_t* heap, sc_defn_t** scs, int sc_count)
 {
     globals_t *globals = list_new();
+    printf("%s\n", *scs[0]->body->data.e_variable);
     for (int i = 0; i < sc_count; i++)
     {
-        binding_t* global = allocate_sc(heap, (*scs)++);
+        sc_defn_t* sc_definition = malloc(sizeof(sc_defn_t));
+        sc_definition = scs[i];
+        binding_t* global = allocate_sc(heap, scs[i]);
         list_add_anything(globals, global);
     }
     return globals;
@@ -244,44 +254,77 @@ globals_t* build_initial_heap(heap_t* heap, sc_defn_t** scs, int sc_count)
 
 int main(int argc, const char *argv[])
 {
-  sc_defn_t *scs[1]; 
+  // We create an array of supercombinator definitions.
+  sc_defn_t *scs[2]; 
+
+  // We create the main supercombinator with 0 arguments.
   sc_defn_t *sc = malloc(sizeof(sc_defn_t));
   sc->sc_name = "main";
   char *a[0];
-  // a[0] = "blah";
-  // a[1] = "hmm";
   sc->arg_names = a;
   sc->arg_names_count = 0;
 
-
+  // We create a negation expression.
   expr_t *e1 = malloc(sizeof(expr_t));
   e1->data.e_prim.op = NEG;
   e1->tag = E_PRIM;
 
+  // We create a variable expression "x".
   expr_t *e2 = malloc(sizeof(expr_t));
-  e2->data.e_num = 42;
-  e2->tag = E_NUM;
+  char* x = "x";
+  e2->data.e_variable = &x;
+  e2->tag = VAR;
 
-  expr_t *app = malloc(sizeof(expr_t));
-  app->data.e_application = malloc(sizeof(e_application_t));
-  app->data.e_application->expr1 = e1;
-  app->data.e_application->expr2 = e2;
-  app->tag = APP;
+  // We create an application expr with negation on the left side, and the
+  // variable on the right side.
+  expr_t *neg_expr = malloc(sizeof(expr_t));
+  neg_expr->data.e_application = malloc(sizeof(e_application_t));
+  neg_expr->data.e_application->expr1 = e1;
+  neg_expr->data.e_application->expr2 = e2;
+  neg_expr->tag = APP;
 
-  expr_t *neg = malloc(sizeof(expr_t));
-  neg->data.e_prim.op = NEG;
-  neg->tag = E_PRIM;
+  // The negation supercombinator which takes one argument x.
+  sc_defn_t *neg_sc = malloc(sizeof(sc_defn_t));
+  neg_sc->sc_name = "negation";
+  char *arg_names[1];
+  arg_names[0] = "x";
+  neg_sc->arg_names = arg_names;
+  neg_sc->arg_names_count = 1;
+  neg_sc->body = neg_expr;
 
-  expr_t* negneg = malloc(sizeof(expr_t));
-  negneg->data.e_application = malloc(sizeof(e_application_t));
-  negneg->data.e_application->expr1 = neg;
-  negneg->data.e_application->expr2 = app;
-  negneg->tag = APP;
+  /* expr_t *neg = malloc(sizeof(expr_t)); */
+  /* neg->data.e_prim.op = NEG; */
+  /* neg->tag = E_PRIM; */
 
-  sc->body = negneg;
+  /* expr_t* negneg = malloc(sizeof(expr_t)); */
+  /* negneg->data.e_application = malloc(sizeof(e_application_t)); */
+  /* negneg->data.e_application->expr1 = neg; */
+  /* negneg->data.e_application->expr2 = app; */
+  /* negneg->tag = APP; */
+
+  expr_t* the_number_42 = malloc(sizeof(expr_t));
+  the_number_42->tag = E_NUM;
+  the_number_42->data.e_num = 42;
+
+  expr_t* neg_variable = malloc(sizeof(expr_t));
+  neg_variable->tag = VAR;
+  char* neg_name = malloc(sizeof(char)*10);
+  neg_name = "negation";
+  neg_variable->data.e_variable = &neg_name;
+  printf("%s\n", *neg_variable->data.e_variable);
+  printf("%lu\n", (long) *neg_variable->data.e_variable);
+
+  expr_t* main_app = malloc(sizeof(expr_t));
+  main_app->data.e_application = malloc(sizeof(e_application_t));
+  main_app->data.e_application->expr1 = neg_variable;
+  printf("%s\n", *main_app->data.e_application->expr1->data.e_variable);
+  main_app->data.e_application->expr2 = the_number_42;
+  main_app->tag = APP;
+  sc->body = main_app;
   scs[0] = sc;
+  scs[1] = neg_sc;
   heap_t *heap = heap_init();
-  globals_t* globals = build_initial_heap(heap, scs, 1);
+  globals_t* globals = build_initial_heap(heap, scs, 2);
 
   ti_stack_t *stack = malloc(sizeof(ti_stack_t));
   stack_init(stack);

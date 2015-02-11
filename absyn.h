@@ -1,7 +1,7 @@
 #ifndef _ABSYN_H
 #define _ABSYN_H
 
-typedef char* e_variable_t; 
+typedef char* e_variable_t;
 
 typedef int e_num_t;
 
@@ -23,7 +23,7 @@ typedef struct Prim {
 
 struct Expr {
   union {
-    e_variable_t e_variable;
+    e_variable_t* e_variable;
     e_num_t e_num;
     e_application_t* e_application;
     e_let_t e_let;

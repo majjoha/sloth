@@ -7,7 +7,7 @@ void print_ti_node(ti_node_t* node) {
       printf("NUM\n");
       break;
     case SC:
-      printf("SC\n");
+      printf("SC (name: %s)\n", node->data.sc_data.sc_name);
       break;
     case APP:
       printf("APP\n");
