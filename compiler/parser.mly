@@ -13,7 +13,10 @@
 %token LPAR
 %token RPAR
 %token EOF
+%token CONS HEAD TAIL
 
+%right HEAD TAIL
+%right CONS
 %left EQ NEQ
 %nonassoc GT LT GE LE
 %left PLUS MINUS
@@ -46,13 +49,25 @@ idents:
 
 expr:
   | e = expr; a = aexpr                      { App(e, a)               }
-  | u = unop; a = aexpr;                     { App(u, a)               }
   | e1 = expr; PLUS; e2 = expr               { App(App(Var "PLUS", e1), e2) }
   | e1 = expr; MINUS; e2 = expr              { App(App(Var "MINUS", e1), e2) }
-  | e1 = expr; b = binop; e2 = expr          { App(App(b, e1), e2)     }
+  | e1 = expr; TIMES; e2 = expr              { App(App(Var "TIMES", e1), e2) }
+  | e1 = expr; DIV; e2 = expr                { App(App(Var "DIV", e1), e2) }
+  | e1 = expr; LT; e2 = expr                 { App(App(Var "LT", e1), e2) }
+  | e1 = expr; GT; e2 = expr                 { App(App(Var "GT", e1), e2) }
+  | e1 = expr; EQ; e2 = expr                 { App(App(Var "EQ", e1), e2) }
+  | e1 = expr; NEQ; e2 = expr                { App(App(Var "NEQ", e1), e2) }
+  | e1 = expr; LE; e2 = expr                 { App(App(Var "LE", e1), e2) }
+  | e1 = expr; GE; e2 = expr                 { App(App(Var "GE", e1), e2) }
+  | e1 = expr; AND; e2 = expr                { App(App(Var "AND", e1), e2) }
+  | e1 = expr; OR; e2 = expr                 { App(App(Var "OR", e1), e2) }
+  | MINUS; e = expr                          { App(Var "NEG", e)          }
   | LET; d = defns; IN; e = expr             { Let(false, d, e)        }
   | LETREC; d = defns; IN; e = expr          { Let(true, d, e)         }
   | CASE; e = expr; OF; a = alts             { Case(e, a)              }
+  | HEAD; e = expr                           { App(Var "HEAD", e)      }
+  | TAIL; e = expr                           { App(Var "TAIL", e)      }
+  | e1 = expr; CONS; e2 = expr               { App(App(Var "CONS", e1), e2) }
   | a = aexpr                                { a                       }
 ;
 
@@ -79,34 +94,4 @@ alts:
 
 alt:
   | i = INT; is = idents; RARROW; e = expr      { (i, is, e) }
-;
-
-unop:
-  | MINUS;                                      { Var "NEG"  }
-
-binop:
-  | a = arithop                                 { a }
-  | r = relop                                   { r }
-  | b = boolop                                  { b }
-;
-
-arithop:
-  | PLUS                                  { Var "PLUS"  }
-  | MINUS                                 { Var "MINUS" }
-  | TIMES                                 { Var "TIMES" }
-  | DIV                                   { Var "DIV"   }
-;
-
-relop:
-  | LT                                    { Var "LT"  }
-  | LE                                    { Var "LE"  }
-  | EQ                                    { Var "EQ"  }
-  | NEQ                                   { Var "NEQ" }
-  | GT                                    { Var "GT"  }
-  | GE                                    { Var "GE"  }
-;
-
-boolop:
-  | AND                                   { Var "AND" }
-  | OR                                    { Var "OR"  }
 ;

@@ -36,5 +36,8 @@ rule token = parse
   | '='                 { EQ     }
   | '('                 { LPAR   }
   | ')'                 { RPAR   }
+  | '#'                 { HEAD   }
+  | '_'                 { TAIL   }
+  | ':'                 { CONS   }
   | _                   { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf)) }
   | eof                 { EOF    }
