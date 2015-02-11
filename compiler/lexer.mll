@@ -3,18 +3,38 @@
   open Lexing
 
   exception SyntaxError of string
+
+  let keyword s =
+    match s with
+    | "in"    -> IN
+    | "let"   -> LET
+    | "letrec" -> LETREC
+    | "case" -> CASE
+    | "of" -> OF
+    | "pack" -> PACK
+    | _       -> IDENT s
 }
 
-rule main = parse
-  | ' ' | '\t' | '\n'   { main lexbuf }
+
+rule token = parse
+  | ' ' | '\t' | '\n'   { token lexbuf }
   | ['0'-'9']+          { INT (int_of_string (Lexing.lexeme lexbuf)) }
-  | ','                 { COMMA }
-  | ['a'-'z' '_']+ as s { IDENT s }
-  | '+'                 { PLUS  }
-  | '-'                 { MINUS }
-  | '*'                 { TIMES }
-  | '='                 { EQ    } 
-  | '('                 { LPAR  }
-  | ')'                 { RPAR  }
+  | ','                 { COMMA  }
+  | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']* as s { keyword(s) }
+  | '+'                 { PLUS   }
+  | '-'                 { MINUS  }
+  | '*'                 { TIMES  }
+  | '/'                 { DIV    }
+  | '<'                 { LT     }
+  | '>'                 { GT     }
+  | "<="                { LE     }
+  | ">="                { GE     }
+  | "!="                { NEQ    }
+  | "&&"                { AND    }
+  | "||"                { OR     }
+  | "->"                { RARROW }
+  | '='                 { EQ     }
+  | '('                 { LPAR   }
+  | ')'                 { RPAR   }
   | _                   { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf)) }
-  | eof                 { EOF }
+  | eof                 { EOF    }
