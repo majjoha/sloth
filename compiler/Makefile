@@ -11,6 +11,6 @@ main:
 
 clean:
 	rm lexer.cmi lexer.cmo lexer.ml
-	rm parser.automaton parser.cmi parser.cmo parser.mli parser.ml
+	rm parser.automaton parser.cmi parser.cmo parser.mli parser.ml parser.conflicts
 	rm absyn.cmi absyn.cmo
 	rm interpreter.cmi interpreter.cmo
