@@ -6,7 +6,7 @@
 %token <string> IDENT
 %token IN LET LETREC CASE OF PACK
 %token COMMA
-%token PLUS MINUS TIMES DIV
+%token PLUS MINUS TIMES DIV MOD
 %token LT GT LE GE NEQ EQ
 %token OR AND
 %token RARROW
@@ -53,6 +53,7 @@ expr:
   | e1 = expr; MINUS; e2 = expr              { App(App(Var "MINUS", e1), e2) }
   | e1 = expr; TIMES; e2 = expr              { App(App(Var "TIMES", e1), e2) }
   | e1 = expr; DIV; e2 = expr                { App(App(Var "DIV", e1), e2) }
+  | e1 = expr; MOD; e2 = expr                { App(App(Var "MOD", e1), e2) }
   | e1 = expr; LT; e2 = expr                 { App(App(Var "LT", e1), e2) }
   | e1 = expr; GT; e2 = expr                 { App(App(Var "GT", e1), e2) }
   | e1 = expr; EQ; e2 = expr                 { App(App(Var "EQ", e1), e2) }
@@ -62,12 +63,12 @@ expr:
   | e1 = expr; AND; e2 = expr                { App(App(Var "AND", e1), e2) }
   | e1 = expr; OR; e2 = expr                 { App(App(Var "OR", e1), e2) }
   | MINUS; e = expr                          { App(Var "NEG", e)          }
-  | LET; d = defns; IN; e = expr             { Let(false, d, e)        }
-  | LETREC; d = defns; IN; e = expr          { Let(true, d, e)         }
+  | LET; d = defns; IN; e = expr             { Let(d, e)                  }
+  | LETREC; d = defns; IN; e = expr          { Letrec(d, e)            }
   | CASE; e = expr; OF; a = alts             { Case(e, a)              }
-  | HEAD; e = expr                           { App(Var "HEAD", e)      }
-  | TAIL; e = expr                           { App(Var "TAIL", e)      }
-  | e1 = expr; CONS; e2 = expr               { App(App(Var "CONS", e1), e2) }
+  | HEAD; e = expr                           { App(Sel(2, 1), e)      }
+  | TAIL; e = expr                           { App(Sel(2, 2), e)      }
+  | e1 = expr; CONS; e2 = expr               { App(App(Constr(2, 2), e1), e2) }
   | a = aexpr                                { a                       }
 ;
 
