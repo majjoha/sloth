@@ -7,14 +7,12 @@ open Compiler
 exception Mismatch
 
 let from_string s = Parser.prog Lexer.token (Lexing.from_string s)
+
 let compile s = compProg (from_string s);;
 
-(*
-let rec eval (e:expr option) =
-  match e with
-  | Some Prim("+", e1, e2) -> (eval (Some e1)) + (eval (Some e2))
-  | Some Prim("-", e1, e2) -> (eval (Some e1)) - (eval (Some e2))
-  | Some CstI i            -> i
-  | _                      -> raise Mismatch
-;
-*)
+let toFile (instructions:int list) (file:string) =
+  let oc = open_out file in
+  let result =
+    String.concat " " (List.map (fun i -> string_of_int(i)) instructions) in
+  Printf.fprintf oc "%s\n" result;
+  close_out oc;;
