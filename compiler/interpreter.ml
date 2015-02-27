@@ -1,10 +1,13 @@
 open Parser
 open Lexer
 open Absyn
+open Instructions
+open Compiler
 
 exception Mismatch
 
 let from_string s = Parser.prog Lexer.token (Lexing.from_string s)
+let compile s = compProg (from_string s);;
 
 (*
 let rec eval (e:expr option) =
