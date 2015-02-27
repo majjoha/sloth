@@ -10,6 +10,7 @@ main:
 	ocamlc -c instructions.ml
 	ocamlc -c compiler.ml
 	ocamlc -c interpreter.ml
+	ocamlc -c codegen.ml
 
 clean:
 	rm lexer.cmi lexer.cmo lexer.ml
@@ -18,3 +19,4 @@ clean:
 	rm interpreter.cmi interpreter.cmo
 	rm instructions.cmi instructions.cmo
 	rm compiler.cmi compiler.cmo
+	rm codegen.cmi codegen.cmo

@@ -40,5 +40,6 @@ rule token = parse
   | '#'                 { HEAD   }
   | '_'                 { TAIL   }
   | ':'                 { CONS   }
+  | ';'                 { SEMI   }
   | _                   { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf)) }
   | eof                 { EOF    }

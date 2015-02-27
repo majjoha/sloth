@@ -5,7 +5,7 @@
 %token <int> INT
 %token <string> IDENT
 %token IN LET LETREC CASE OF PACK
-%token COMMA
+%token COMMA SEMI
 %token PLUS MINUS TIMES DIV MOD
 %token LT GT LE GE NEQ EQ
 %token OR AND
@@ -33,7 +33,7 @@ prog:
 ;
 
 scdefns:
-  | s1 = scdefn; s2 = scdefns               { s1 :: s2 }
+  | s1 = scdefn; SEMI; s2 = scdefns         { s1 :: s2 }
   | s = scdefn                              { [s] }
 ;
 

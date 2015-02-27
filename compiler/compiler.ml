@@ -3,6 +3,8 @@ open Absyn
 
 type env = (string * int) list;;
 
+type compiledSc = (string * int * instruction list);;
+
 let failwith msg = raise (Failure msg);;
 
 let rec inEnv (env:env) (var:string) =
@@ -33,7 +35,7 @@ let rec compR (expr:expr) (env:env) =
   compC expr env @ [Slide (List.length env + 1); Unwind]
 ;;
 
-let rec compSc (sc:scdefn) =
+let rec compSc (sc:scdefn) : compiledSc = 
   match sc with
   | (name, args, body) ->
       let i = ref (-1) in
