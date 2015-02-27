@@ -7,6 +7,8 @@ main:
 	ocamlc -c parser.mli
 	ocamlc -c parser.ml
 	ocamlc -c lexer.ml
+	ocamlc -c instructions.ml
+	ocamlc -c compiler.ml
 	ocamlc -c interpreter.ml
 
 clean:
@@ -14,3 +16,5 @@ clean:
 	rm parser.automaton parser.cmi parser.cmo parser.mli parser.ml parser.conflicts
 	rm absyn.cmi absyn.cmo
 	rm interpreter.cmi interpreter.cmo
+	rm instructions.cmi instructions.cmo
+	rm compiler.cmi compiler.cmo
