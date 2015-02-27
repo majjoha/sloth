@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+rlwrap ocaml absyn.cmo parser.cmo lexer.cmo instructions.cmo compiler.cmo interpreter.cmo
