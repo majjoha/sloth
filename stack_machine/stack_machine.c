@@ -1,35 +1,45 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "utils.h"
 
-int* read_file(char* filename) {
-  int capacity = 1, size = 0;
-  int* program = (int*)malloc(sizeof(int) * capacity);
-  FILE* source = fopen(filename, "r");
-  int instructions;
+#define STACK_SIZE 1000
 
-  while (fscanf(source, "%d", &instructions) == 1) {
-    if (size >= capacity) {
-      int* buffer = (int*)malloc(sizeof(int) * 2 * capacity);
-      int i;
-      for (i = 0; i < capacity; i++) {
-        buffer[i] = program[i];
-      }
-      free(program);
-      program = buffer;
-      capacity *= 2;
-    }
-    program[size++] = instructions;
+#define PUSHGLOBAL 0
+#define PUSH 1
+#define PUSHINT 2
+#define MKAP 3
+#define UNWIND 4
+#define SLIDE 5
+#define JUMP 6
+
+void print_instruction(int instruction) {
+  switch (instruction) {
+    case PUSHGLOBAL: printf("PUSHGLOBAL\n"); break;
+    case PUSH:       printf("PUSH\n"); break;
+    case PUSHINT:    printf("PUSHINT\n"); break;
+    case MKAP:       printf("MKAP\n"); break;
+    case UNWIND:     printf("UNWIND\n"); break;
+    case SLIDE:      printf("SLIDE\n"); break;
+    case JUMP:       printf("JUMP\n"); break;
+    default:         printf("<unknown>\n");
   }
-  fclose(source);
+}
 
-  return program;
+int execute_instructions(int* program, int* stack) {
+  return 1;
+}
+
+int execute(char* filename) {
+  int* program = read_file(filename);
+  int* stack = (int*)malloc(sizeof(int)*STACK_SIZE);
+
+  return execute_instructions(program, stack);
 }
 
 int main(int argc, char* argv[]) {
   if (argc == 2) {
-    read_file(argv[1]);
-    return 1;
+    return execute(argv[1]);
   } else {
     printf("You need to pass a file to the stack machine.\n");
     printf("Usage: stack_machine <program>\n");
