@@ -66,13 +66,13 @@ void print_instructions(int* instructions) {
   printf("\n");
 }
 
-void print_stack(int sp, int* stack) {
+void print_stack(int sp, word** stack) {
   for (int i = 0; i != sp+1; i++) {
-    printf("%d\n", GetTag(*(word*)stack[i]));
+    printf("%d\n", GetTag(*stack[i]));
   }
 }
 
-int execute_instructions(int* program, int* stack) {
+int execute_instructions(int* program, word** stack) {
   int sp = -1;
   int pc = 0;
 
@@ -81,65 +81,65 @@ int execute_instructions(int* program, int* stack) {
       case PUSHGLOBAL: {
         word* global_node = allocate(GLOBAL_NODE, 1);
         global_node[1] = program[pc++];
-        stack[++sp] = (int) global_node;
+        stack[++sp] = global_node;
         break;
       }
       case PUSH: {
         int next = program[pc++];
         printf("%d\n", GIndex(next+1));
-        word* app_node = (word*) stack[GIndex(next+1)];
-        stack[sp+1] = app_node[2];
+        word* app_node = stack[GIndex(next+1)];
+        stack[sp+1] = (word*) app_node[2];
         sp++;
         break;
       }
       case PUSHINT: {
         word* integer_node = allocate(INTEGER_NODE, 1);
         integer_node[1] = program[pc++];
-        stack[++sp] = (int) integer_node;
+        stack[++sp] = (word*) integer_node;
         break;
       }
       case MKAP: {
-        word left = stack[sp];
-        word right = stack[sp-1];
+        word* left = stack[sp];
+        word* right = stack[sp-1];
         word* app_node = allocate(APP_NODE, 2);
-        app_node[1] = left;
-        app_node[2] = right;
-        stack[sp-1] = (int) app_node;
+        app_node[1] = (word) left;
+        app_node[2] = (word) right;
+        stack[sp-1] = (word*) app_node;
         sp--;
         break;
       }
       case UNWIND: {
-        switch (GetTag(*(word*)stack[sp])) {
+        switch (GetTag(*stack[sp])) {
           case INTEGER_NODE: {
-            word* integer_node = (word*) stack[sp];
+            word* integer_node = stack[sp];
             return integer_node[1];
           }  
           case APP_NODE: {
-            word* app_node = (word*) stack[sp];
-            stack[++sp] = app_node[1];
+            word* app_node = stack[sp];
+            stack[++sp] = (word*) app_node[1];
             pc--;
             break;
           }
           case GLOBAL_NODE: {
-            word* global_node = (word*) stack[sp];
+            word* global_node = stack[sp];
             pc = (int) global_node[1];
             break;
           }
           default:
-            printf("Unwind on %d\n", GetTag(*(word*)stack[sp]));
+            printf("Unwind on %d\n", GetTag(*stack[sp]));
             exit(EXIT_FAILURE);
         }
         break;
       }
       case SLIDE: {
-        word* node = (word*) stack[sp];
+        word* node = stack[sp];
         int n = program[pc++];
         if (n > sp) {
           sp = 0;
         } else {
           sp = GIndex(n);
         }
-        stack[sp] = (int) node;
+        stack[sp] = node;
         break;
       }
       case JUMP:
@@ -156,7 +156,7 @@ int execute_instructions(int* program, int* stack) {
 
 int execute(char* filename) {
   int* program = read_file(filename);
-  int* stack = (int*)malloc(sizeof(int) * STACK_SIZE);
+  word** stack = (word**)malloc(sizeof(word*) * STACK_SIZE);
   init_heap();
 
   print_instructions(program);
@@ -166,7 +166,8 @@ int execute(char* filename) {
 
 int main(int argc, char* argv[]) {
   if (argc == 2) {
-    return execute(argv[1]);
+    printf("%d\n", execute(argv[1]));
+    return 0;
   } else {
     printf("You need to pass a file to the stack machine.\n");
     printf("Usage: stack_machine <program>\n");
