@@ -33,3 +33,4 @@
 *.cmo
 *.automaton
 *.conflicts
+*.mli
