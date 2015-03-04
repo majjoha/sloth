@@ -55,7 +55,7 @@ int execute_instructions(int* program, word** stack) {
       case PUSHINT: {
         word* integer_node = allocate(INTEGER_NODE, 1);
         integer_node[1] = program[pc++];
-        stack[++sp] = (word*) integer_node;
+        stack[++sp] = integer_node;
         break;
       }
       case MKAP: {
@@ -64,7 +64,7 @@ int execute_instructions(int* program, word** stack) {
         word* app_node = allocate(APP_NODE, 2);
         app_node[1] = (word) left;
         app_node[2] = (word) right;
-        stack[sp-1] = (word*) app_node;
+        stack[sp-1] = app_node;
         sp--;
         break;
       }
