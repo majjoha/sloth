@@ -12,6 +12,7 @@
     | "case" -> CASE
     | "of" -> OF
     | "pack" -> PACK
+    | "end"  -> END
     | _       -> IDENT s
 }
 

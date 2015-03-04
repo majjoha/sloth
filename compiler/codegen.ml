@@ -1,6 +1,5 @@
 open Compiler
 open Instructions
-open Interpreter
 
 let incrementInstructionCount (count:int) (instr:instruction) : int = 
     match instr with
@@ -44,9 +43,4 @@ let rec codeGenerationHelper (compiledScs : compiledSc list) (labelEnv : (string
 let codeGeneration (compiledScs : compiledSc list) : int list =
   let labelEnv = generateLabelEnv compiledScs 2 in
   (instructionToCode (Jump "main") labelEnv) @ codeGenerationHelper compiledScs labelEnv
-;;
-
-
-let example1 = 
-  codeGeneration (compile "main = f 2; f x = x")
 ;;

@@ -4,7 +4,7 @@
 
 %token <int> INT
 %token <string> IDENT
-%token IN LET LETREC CASE OF PACK
+%token IN LET LETREC CASE OF PACK END
 %token COMMA SEMI
 %token PLUS MINUS TIMES DIV MOD
 %token LT GT LE GE NEQ EQ
@@ -20,7 +20,7 @@
 %left EQ NEQ
 %nonassoc GT LT GE LE
 %left PLUS MINUS
-%left TIMES DIV
+%left TIMES DIV MOD
 %left OR
 %left AND
 
@@ -38,7 +38,7 @@ scdefns:
 ;
 
 scdefn:
-  | i1 = IDENT; i2 = idents; EQ; e = expr   { (i1, i2, e) }
+  | i1 = IDENT; i2 = idents; EQ; e = higherExpr   { (i1, i2, e) }
 ;
 
 idents:
@@ -47,8 +47,14 @@ idents:
   |                                          { []     }
 ;
 
+higherExpr:
+  | LET; d = defns; IN; e = higherExpr             { Let(d, e)               }
+  | LETREC; d = defns; IN; e = higherExpr          { Letrec(d, e)            }
+  | CASE; e = higherExpr; OF; a = alts; END        { Case(e, a)              }
+  | e = expr;                                      { e }
+;
+
 expr:
-  | e = expr; a = aexpr                      { App(e, a)               }
   | e1 = expr; PLUS; e2 = expr               { App(App(Var "PLUS", e1), e2) }
   | e1 = expr; MINUS; e2 = expr              { App(App(Var "MINUS", e1), e2) }
   | e1 = expr; TIMES; e2 = expr              { App(App(Var "TIMES", e1), e2) }
@@ -62,25 +68,28 @@ expr:
   | e1 = expr; GE; e2 = expr                 { App(App(Var "GE", e1), e2) }
   | e1 = expr; AND; e2 = expr                { App(App(Var "AND", e1), e2) }
   | e1 = expr; OR; e2 = expr                 { App(App(Var "OR", e1), e2) }
-  | MINUS; e = expr                          { App(Var "NEG", e)          }
-  | LET; d = defns; IN; e = expr             { Let(d, e)                  }
-  | LETREC; d = defns; IN; e = expr          { Letrec(d, e)            }
-  | CASE; e = expr; OF; a = alts             { Case(e, a)              }
+  | MINUS; e = aexpr                         { App(Var "NEG", e)          }
   | HEAD; e = expr                           { App(Sel(2, 1), e)      }
   | TAIL; e = expr                           { App(Sel(2, 2), e)      }
   | e1 = expr; CONS; e2 = expr               { App(App(Constr(2, 2), e1), e2) }
   | a = aexpr                                { a                       }
+  | ap = appexpr                             { ap }
 ;
 
 aexpr:
   | s = IDENT                                   { Var s                }
   | i = INT                                     { Num i                }
-  | PACK; LPAR; i1 = INT; COMMA; i2 = INT; RPAR { Constr(i1, i2)       }
   | LPAR; e = expr; RPAR                        { e }
+  | PACK; LPAR; i1 = INT; COMMA; i2 = INT; RPAR { Constr(i1, i2)       }
+;
+
+appexpr:
+  | a1 = aexpr; a2 = aexpr                      { App(a1, a2) }
+  | e = appexpr; a = aexpr                      { App(e, a)               }
 ;
 
 defns:
-  | d = defn; ds = defns                        { d :: ds    }
+  | d = defn; SEMI; ds = defns                  { d :: ds    }
   | d = defn                                    { [d]        }
 ;
 
@@ -89,7 +98,7 @@ defn:
 ;
 
 alts:
-  | a = alt; als = alts                         { a :: als   }
+  | a = alt; SEMI; als = alts                   { a :: als   }
   | a = alt;                                    { [a]        }
 ;
 
