@@ -2,36 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include "utils.h"
-
-#define STACK_SIZE 1000
-#define HEAP_SIZE 1000
-#define LAST_INSTRUCTION -1
-
-#define PUSHGLOBAL 0
-#define PUSH 1
-#define PUSHINT 2
-#define MKAP 3
-#define UNWIND 4
-#define SLIDE 5
-#define JUMP 6
-
-#define APP_NODE 0
-#define INTEGER_NODE 1
-#define GLOBAL_NODE 2
-
-#define White 0
-#define Grey  1
-#define Black 2
-#define Blue  3
-
-#define GetTag(h) (h>>24)
-#define GIndex(i) sp-(i)
-
-typedef unsigned int word;
+#include "stack_machine.h"
 
 word* heap;
 word* afterHeap;
 word* lastFreeHeapNode;
+int verbose = 0;
 
 word mkheader(unsigned int tag, unsigned int length, unsigned int color) { 
   return (tag << 24) | (length << 2) | color;
@@ -50,33 +26,18 @@ word* allocate(unsigned int tag, unsigned int length) {
   return heapNode;
 }
 
-void print_instructions(int* instructions) {
-  for (int i = 0; instructions[i] != LAST_INSTRUCTION; i++) {
-    switch (instructions[i]) {
-      case PUSHGLOBAL: { printf("PUSHGLOBAL %d; ", instructions[++i]); break; }
-      case PUSH: { printf("PUSH %d; ", instructions[++i]); break; }
-      case PUSHINT: { printf("PUSHINT %d; ", instructions[++i]); break; }
-      case MKAP: { printf("MKAP; "); break; }
-      case UNWIND: { printf("UNWIND; "); break; }
-      case SLIDE: { printf("SLIDE %d; ", instructions[++i]); break; }
-      case JUMP: { printf("JUMP %d; ", instructions[++i]); break; }
-      default: printf("<unknown> ");
-    }
-  }
-  printf("\n");
-}
-
-void print_stack(int sp, word** stack) {
-  for (int i = 0; i != sp+1; i++) {
-    printf("%d\n", GetTag(*stack[i]));
-  }
-}
-
 int execute_instructions(int* program, word** stack) {
   int sp = -1;
   int pc = 0;
 
   for (;;) {
+    if (verbose) {
+      int vpc = pc;
+      print_stack(sp, stack);
+      print_instruction(program, &vpc);
+      printf("\n");
+    }
+
     switch (program[pc++]) {
       case PUSHGLOBAL: {
         word* global_node = allocate(GLOBAL_NODE, 1);
@@ -86,7 +47,6 @@ int execute_instructions(int* program, word** stack) {
       }
       case PUSH: {
         int next = program[pc++];
-        printf("%d\n", GIndex(next+1));
         word* app_node = stack[GIndex(next+1)];
         stack[sp+1] = (word*) app_node[2];
         sp++;
@@ -159,20 +119,27 @@ int execute(char* filename) {
   word** stack = (word**)malloc(sizeof(word*) * STACK_SIZE);
   init_heap();
 
-  print_instructions(program);
-
   return execute_instructions(program, stack);
 }
 
 int main(int argc, char* argv[]) {
+  int fileIndex = 1;
+  int runValid = 1;
+
   if (argc == 2) {
-    printf("%d\n", execute(argv[1]));
+  } else if (argc == 3 && strcmp(argv[1], "--verbose") == 0) {
+    fileIndex = 2;
+    verbose = 1;
+  } else {
+    runValid = 0;
+  }
+
+  if (runValid) {
+    printf("Result: %d\n", execute(argv[fileIndex]));
     return 0;
   } else {
     printf("You need to pass a file to the stack machine.\n");
-    printf("Usage: stack_machine <program>\n");
+    printf("Usage: stack_machine [--verbose] <program>\n");
     exit(EXIT_SUCCESS);
   }
-
-  return 0;
 }
