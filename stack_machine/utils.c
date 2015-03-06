@@ -16,6 +16,8 @@ void print_instruction(int* instructions, int* pi) {
     case UNWIND: { printf("UNWIND; "); break; }
     case SLIDE: { printf("SLIDE %d; ", instructions[++(*pi)]); break; }
     case JUMP: { printf("JUMP %d; ", instructions[++(*pi)]); break; }
+    case UPDATE: { printf("UPDATE %d; ", instructions[++(*pi)]); break;}
+    case POP: { printf("POP %d; ", instructions[++(*pi)]); break;}
     default: printf("<unknown> ");
   }
 }

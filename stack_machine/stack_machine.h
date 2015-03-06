@@ -12,10 +12,13 @@
 #define UNWIND     4
 #define SLIDE      5
 #define JUMP       6
+#define UPDATE     7
+#define POP        8
 
 #define APP_NODE     0
 #define INTEGER_NODE 1
 #define GLOBAL_NODE  2
+#define IND_NODE 3
 
 #define White 0
 #define Grey  1
@@ -23,7 +26,7 @@
 #define Blue  3
 
 #define GetTag(h) (h>>24)
-#define GIndex(i) sp-(i)
+#define GtoAIndex(i) sp-(i)
 
 typedef unsigned int word;
 

@@ -1,5 +1,6 @@
 open Instructions
 open Absyn
+open Printf
 
 type env = (string * int) list;;
 
@@ -11,6 +12,10 @@ let rec inEnv (env:env) (var:string) =
   match env with
   | [] -> false
   | (x1,x2)::xs -> if x1 = var then true else inEnv xs var
+;;
+
+let printEnv (env:env) =
+  List.iter (fun (s, i) -> fprintf stdout ("Name: %s, Index: %d\n") s i) env
 ;;
 
 let rec lookup (env:env) (var:string) =
@@ -28,6 +33,10 @@ let rec compC (expr:expr) (env:env) =
   | Var s -> if inEnv env s then [Push (lookup env s)] else [Pushglobal s]
   | Num n -> [Pushint n]
   | App (e1, e2) -> compC e2 env @ compC e1 (argOffset env 1) @ [Mkap]
+  | Let (defns, body) -> 
+      let compDefns = List.flatten (List.mapi (fun n (s, e) -> compC e (argOffset env n)) defns) in
+      let newEnv = (List.mapi (fun n (s, e) -> (s, n)) (List.rev defns)) @ argOffset env (List.length defns) in
+      compDefns @ (compC body newEnv) @ [Slide (List.length defns)]
   | _ -> failwith "Unimplemented expression type."
 ;;
 
@@ -39,9 +48,8 @@ let rec compR (expr:expr) (env:env) =
 let rec compSc (sc:scdefn) : compiledSc = 
   match sc with
   | (name, args, body) ->
-      let i = ref (-1) in
       (name, List.length args,
-        compR body (List.map (fun a -> i := !i+1; (a,!i)) args))
+        compR body (List.mapi (fun i a -> (a, i)) args))
 ;;
 
 let rec compProg (prog:program) =
