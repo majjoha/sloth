@@ -21,3 +21,4 @@ clean:
 	rm instructions.cmi instructions.cmo
 	rm compiler.cmi compiler.cmo
 	rm codegen.cmi codegen.cmo
+	rm slothc
