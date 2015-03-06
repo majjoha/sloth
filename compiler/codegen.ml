@@ -12,6 +12,7 @@ let incrementInstructionCount (count:int) (instr:instruction) : int =
     | Jump _         -> count+2
     | Update _       -> count+2
     | Pop _          -> count+2
+    | Alloc _        -> count+2
 ;;
 
 let rec generateLabelEnv (compiledScs : compiledSc list) (instructionCount:int) : (string * int) list =
@@ -33,6 +34,7 @@ let instructionToCode (instruction:instruction) (labelEnv:(string * int) list) :
   | Jump f -> [6; (lookup labelEnv f)]
   | Update n -> [7; n]
   | Pop i -> [8; i]
+  | Alloc n -> [9; n]
 ;;
 
 let rec codeGenerationHelper (compiledScs : compiledSc list) (labelEnv : (string * int) list) =
