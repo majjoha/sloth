@@ -18,7 +18,6 @@ let rec generateLabelEnv (compiledScs : compiledSc list) (instructionCount:int) 
   match compiledScs with
   | [] -> []
   | (name, args, body)::rest -> 
-      Printf.printf "Length of %s: %d\n" name (List.length body);
       (name, instructionCount) :: 
       (generateLabelEnv rest (List.fold_left incrementInstructionCount instructionCount body))
 ;;
