@@ -8,3 +8,4 @@ type instruction =
   | Jump of string
   | Update of int
   | Pop of int
+  | Alloc of int
