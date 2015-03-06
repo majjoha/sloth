@@ -34,3 +34,7 @@
 *.automaton
 *.conflicts
 *.mli
+
+# Sloth
+*.slo
+slothc
