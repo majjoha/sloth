@@ -6,3 +6,5 @@ type instruction =
   | Unwind
   | Slide of int
   | Jump of string
+  | Update of int
+  | Pop of int

@@ -32,7 +32,8 @@ let rec compC (expr:expr) (env:env) =
 ;;
 
 let rec compR (expr:expr) (env:env) =
-  compC expr env @ [Slide (List.length env + 1); Unwind]
+  let n = List.length env in
+  compC expr env @ [Update n; Pop n; Unwind]
 ;;
 
 let rec compSc (sc:scdefn) : compiledSc = 
