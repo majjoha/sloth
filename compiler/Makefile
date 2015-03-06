@@ -11,6 +11,7 @@ main:
 	ocamlc -c compiler.ml
 	ocamlc -c codegen.ml
 	ocamlc -c slothc.ml
+	ocamlc absyn.cmo parser.cmo lexer.cmo instructions.cmo compiler.cmo codegen.cmo slothc.cmo -o slothc
 
 clean:
 	rm lexer.cmi lexer.cmo lexer.ml
