@@ -47,7 +47,7 @@ int execute_instructions(int* program, word** stack) {
       }
       case PUSH: {
         int next = program[pc++];
-        word* app_node = stack[GIndex(next+1)];
+        word* app_node = stack[GtoAIndex(next+1)];
         stack[sp+1] = (word*) app_node[2];
         sp++;
         break;
@@ -85,6 +85,13 @@ int execute_instructions(int* program, word** stack) {
             pc = (int) global_node[1];
             break;
           }
+          case IND_NODE: {
+            word* ind_node = stack[sp];
+            word* node = (word*) ind_node[1];
+            stack[sp] = node;
+            pc--;
+            break;
+          }
           default:
             printf("Unwind on %d\n", GetTag(*stack[sp]));
             exit(EXIT_FAILURE);
@@ -97,14 +104,39 @@ int execute_instructions(int* program, word** stack) {
         if (n > sp) {
           sp = 0;
         } else {
-          sp = GIndex(n);
+          sp = GtoAIndex(n);
         }
         stack[sp] = node;
         break;
       }
       case JUMP:
-        pc = program[pc+1];
+        pc = program[pc];
         break;
+      case UPDATE: {
+        word* node = stack[sp];
+        word* ind_node = allocate(IND_NODE, 1);
+        ind_node[1] = (word) node;
+        int n = program[pc++];
+        int temp;
+        if (n > sp)
+        {
+          temp = 0;
+        } else {
+          temp = GtoAIndex(n);
+        }
+        stack[temp] = ind_node;
+        break;
+      }
+      case POP: {
+        int n = program[pc++];
+        if (n > sp)
+        {
+          sp = 0;
+        } else {
+          sp = sp - n;
+        }
+        break;
+      }
       default:
         printf("Illegal instruction %d at address %d\n", program[pc-1], pc-1);
         exit(EXIT_FAILURE);
