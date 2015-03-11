@@ -18,6 +18,7 @@ void print_instruction(int* instructions, int* pi) {
     case JUMP: { printf("JUMP %d; ", instructions[++(*pi)]); break; }
     case UPDATE: { printf("UPDATE %d; ", instructions[++(*pi)]); break;}
     case POP: { printf("POP %d; ", instructions[++(*pi)]); break;}
+    case ALLOC: { printf("ALLOC %d; ", instructions[++(*pi)]); break;}
     default: printf("<unknown> ");
   }
 }

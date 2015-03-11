@@ -20,7 +20,7 @@ let rec generateLabelEnv (compiledScs : compiledSc list) (instructionCount:int) 
   | [] -> []
   | (name, args, body)::rest -> 
       (name, instructionCount) :: 
-      (generateLabelEnv rest (List.fold_left incrementInstructionCount instructionCount body))
+      (generateLabelEnv rest ((List.fold_left incrementInstructionCount instructionCount body)+1))
 ;;
 
 let instructionToCode (instruction:instruction) (labelEnv:(string * int) list) : int list = 
@@ -41,11 +41,13 @@ let rec codeGenerationHelper (compiledScs : compiledSc list) (labelEnv : (string
   match compiledScs with
   | [] -> []
   | (name, args, body)::rest -> 
-      List.flatten (List.map (fun inst -> instructionToCode inst labelEnv) body) @ 
+      args :: List.flatten (List.map (fun inst -> instructionToCode inst labelEnv) body) @ 
       codeGenerationHelper rest labelEnv
 ;;
 
 let codeGeneration (compiledScs : compiledSc list) : int list =
-  let labelEnv = generateLabelEnv compiledScs 2 in
-  (instructionToCode (Jump "main") labelEnv) @ codeGenerationHelper compiledScs labelEnv
+  let labelEnv = generateLabelEnv compiledScs 
+                 (incrementInstructionCount (incrementInstructionCount 0 (Pushglobal "main")) Unwind) in
+  (instructionToCode (Pushglobal "main") labelEnv) @ (instructionToCode Unwind labelEnv)
+  @ codeGenerationHelper compiledScs labelEnv
 ;;

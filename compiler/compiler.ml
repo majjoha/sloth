@@ -34,13 +34,13 @@ let rec compC (expr:expr) (env:env) =
   | Num n -> [Pushint n]
   | App (e1, e2) -> compC e2 env @ compC e1 (argOffset env 1) @ [Mkap]
   | Let (defns, body) -> 
-      let compDefns = List.flatten (List.mapi (fun n (s, e) -> compC e (argOffset env n)) defns) in
-      let newEnv = (List.mapi (fun n (s, e) -> (s, n)) (List.rev defns)) @ argOffset env (List.length defns) in
+      let compDefns = List.flatten (List.mapi (fun i (s, e) -> compC e (argOffset env i)) defns) in
+      let newEnv = (List.mapi (fun i (s, e) -> (s, i)) (List.rev defns)) @ argOffset env (List.length defns) in
       compDefns @ (compC body newEnv) @ [Slide (List.length defns)]
   | Letrec (defns, body) ->
       let defnsLen = List.length defns in
-      let newEnv = (List.mapi (fun n (s, e) -> (s, n)) (List.rev defns)) @ argOffset env (List.length defns) in
-      let compDefns = List.flatten (List.mapi (fun n (s, e) -> compC e newEnv @ [Update (defnsLen - n)]) defns) in
+      let newEnv = (List.mapi (fun i (s, e) -> (s, i)) (List.rev defns)) @ argOffset env (List.length defns) in
+      let compDefns = List.flatten (List.mapi (fun i (s, e) -> compC e newEnv @ [Update (defnsLen - (i+1))]) defns) in
       [Alloc (List.length defns)] @ compDefns @ (compC body newEnv) @ [Slide (List.length defns)]
   | _ -> failwith "Unimplemented expression type."
 ;;

@@ -4,6 +4,14 @@
 #include "utils.h"
 #include "stack_machine.h"
 
+/*
+
+NOTES
+
+The first instruction in a supercombinator is the number of input arguments to the supercombinator.
+
+*/
+
 word* heap;
 word* afterHeap;
 word* lastFreeHeapNode;
@@ -47,9 +55,8 @@ int execute_instructions(int* program, word** stack) {
       }
       case PUSH: {
         int next = program[pc++];
-        word* app_node = stack[GtoAIndex(next+1)];
-        stack[sp+1] = (word*) app_node[2];
-        sp++;
+        word* node = stack[GtoAIndex(next)];
+        stack[++sp] = node;
         break;
       }
       case PUSHINT: {
@@ -81,8 +88,17 @@ int execute_instructions(int* program, word** stack) {
             break;
           }
           case GLOBAL_NODE: {
+            // load the code of the function
             word* global_node = stack[sp];
             pc = (int) global_node[1];
+
+            // rearrange stack
+            for (int i = 0; i < program[pc]; i++)
+            {
+              word* app_node = stack[sp-(i+1)];
+              stack[sp-i] = (word*) app_node[2];
+            }
+            pc++;
             break;
           }
           case IND_NODE: {
@@ -113,7 +129,7 @@ int execute_instructions(int* program, word** stack) {
         pc = program[pc];
         break;
       case UPDATE: {
-        word* node = stack[sp];
+        word* node = stack[sp--];
         word* ind_node = allocate(IND_NODE, 1);
         ind_node[1] = (word) node;
         int n = program[pc++];
@@ -134,6 +150,16 @@ int execute_instructions(int* program, word** stack) {
           sp = 0;
         } else {
           sp = sp - n;
+        }
+        break;
+      }
+      case ALLOC: {
+        int n = program[pc++];
+        for (int i = 0; i < n; i++)
+        {
+          word* ind_node = allocate(IND_NODE, 1);
+          ind_node[1] = (word) NULL;
+          stack[++sp] = ind_node;
         }
         break;
       }

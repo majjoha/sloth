@@ -14,6 +14,7 @@
 #define JUMP       6
 #define UPDATE     7
 #define POP        8
+#define ALLOC      9
 
 #define APP_NODE     0
 #define INTEGER_NODE 1
