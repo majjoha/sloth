@@ -7,7 +7,7 @@ open Codegen
 
 let from_string s = Parser.prog Lexer.token (Lexing.from_string s)
 
-let compile s = compProg (from_string s);;
+let compile s = compProgAndStdlib (from_string s);;
 
 let toFile (instructions:int list) (file:string) =
   let oc = open_out file in

@@ -9,3 +9,17 @@ type instruction =
   | Update of int
   | Pop of int
   | Alloc of int
+  | Eval
+  | Add
+  | Sub
+  | Mul
+  | Div
+  | Neg
+  | Eq
+  | Ne
+  | Le
+  | Lt
+  | Ge
+  | Gt
+  | Jfalse of string
+  | Label of string

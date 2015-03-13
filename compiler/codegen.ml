@@ -13,14 +13,44 @@ let incrementInstructionCount (count:int) (instr:instruction) : int =
     | Update _       -> count+2
     | Pop _          -> count+2
     | Alloc _        -> count+2
+    | Eval           -> count+1
+    | Add            -> count+1
+    | Sub            -> count+1
+    | Mul            -> count+1
+    | Div            -> count+1
+    | Neg            -> count+1
+    | Eq             -> count+1
+    | Ne             -> count+1
+    | Le             -> count+1
+    | Lt             -> count+1
+    | Ge             -> count+1
+    | Gt             -> count+1
+    | Jfalse _       -> count+2
+    | Label _        -> count+2
 ;;
 
-let rec generateLabelEnv (compiledScs : compiledSc list) (instructionCount:int) : (string * int) list =
+let rec generateScEnv (compiledScs:compiledSc list) (instructionCount:int) : env =
   match compiledScs with
   | [] -> []
   | (name, args, body)::rest -> 
       (name, instructionCount) :: 
-      (generateLabelEnv rest ((List.fold_left incrementInstructionCount instructionCount body)+1))
+      (generateScEnv rest ((List.fold_left incrementInstructionCount instructionCount body)+1))
+;;
+
+let rec addLabelToEnv (count:int) (instruction:instruction) (labelEnv:env) =
+  match instruction with
+  | Label l -> (l, count) :: labelEnv
+  | _ -> labelEnv
+;;
+
+let addLabelAndIncrement (countAndLabelEnv:int * env) (instruction:instruction) : int * env =
+  let (count, labelEnv) = countAndLabelEnv in
+  let labelEnv2 = addLabelToEnv count instruction labelEnv in
+  (incrementInstructionCount count instruction, labelEnv2)
+;;
+
+let generateLocalLabelEnv (instructions:instruction list) : env =
+  snd (List.fold_left addLabelAndIncrement (0, []) instructions)
 ;;
 
 let instructionToCode (instruction:instruction) (labelEnv:(string * int) list) : int list = 
@@ -35,19 +65,34 @@ let instructionToCode (instruction:instruction) (labelEnv:(string * int) list) :
   | Update n -> [7; n]
   | Pop i -> [8; i]
   | Alloc n -> [9; n]
+  | Eval -> [10]
+  | Add -> [11]
+  | Sub -> [12]
+  | Mul -> [13]
+  | Div -> [14]
+  | Neg -> [15]
+  | Eq -> [16]
+  | Ne -> [17]
+  | Le -> [18]
+  | Lt -> [19]
+  | Ge -> [20]
+  | Gt -> [21]
+  | Jfalse l -> [22; (lookup labelEnv l)]
+  | Label _ -> [23]
 ;;
 
 let rec codeGenerationHelper (compiledScs : compiledSc list) (labelEnv : (string * int) list) =
   match compiledScs with
   | [] -> []
-  | (name, args, body)::rest -> 
-      args :: List.flatten (List.map (fun inst -> instructionToCode inst labelEnv) body) @ 
+  | (name, args, body)::rest ->
+      let env = generateLocalLabelEnv body @ labelEnv in
+      args :: List.flatten (List.map (fun inst -> instructionToCode inst env) body) @
       codeGenerationHelper rest labelEnv
 ;;
 
 let codeGeneration (compiledScs : compiledSc list) : int list =
-  let labelEnv = generateLabelEnv compiledScs 
-                 (incrementInstructionCount (incrementInstructionCount 0 (Pushglobal "main")) Unwind) in
-  (instructionToCode (Pushglobal "main") labelEnv) @ (instructionToCode Unwind labelEnv)
+  let labelEnv = generateScEnv compiledScs
+                 (incrementInstructionCount (incrementInstructionCount 0 (Pushglobal "main")) Eval) in
+  (instructionToCode (Pushglobal "main") labelEnv) @ (instructionToCode Eval labelEnv)
   @ codeGenerationHelper compiledScs labelEnv
 ;;
