@@ -129,18 +129,22 @@ int execute_instructions(int* program, word** stack) {
         pc = program[pc];
         break;
       case UPDATE: {
+        // get node from tip of spine
         word* node = stack[sp--];
-        word* ind_node = allocate(IND_NODE, 1);
-        ind_node[1] = (word) node;
         int n = program[pc++];
         int temp;
+        // find update target
         if (n > sp)
         {
           temp = 0;
         } else {
           temp = GtoAIndex(n);
         }
-        stack[temp] = ind_node;
+        word* old_node = stack[temp];
+        // convert old node into indirection node
+        *old_node = mkheader(IND_NODE, 1, Blue);
+        // set indirection node to point to the node from the tip of the spine
+        old_node[1] = (word) node;
         break;
       }
       case POP: {
@@ -158,7 +162,8 @@ int execute_instructions(int* program, word** stack) {
         for (int i = 0; i < n; i++)
         {
           word* ind_node = allocate(IND_NODE, 1);
-          ind_node[1] = (word) NULL;
+          word* null_node = allocate(NULL_NODE, 0);
+          ind_node[1] = (word) null_node;
           stack[++sp] = ind_node;
         }
         break;

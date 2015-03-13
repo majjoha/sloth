@@ -20,6 +20,7 @@
 #define INTEGER_NODE 1
 #define GLOBAL_NODE  2
 #define IND_NODE 3
+#define NULL_NODE 4
 
 #define White 0
 #define Grey  1
