@@ -19,6 +19,20 @@ void print_instruction(int* instructions, int* pi) {
     case UPDATE: { printf("UPDATE %d; ", instructions[++(*pi)]); break;}
     case POP: { printf("POP %d; ", instructions[++(*pi)]); break;}
     case ALLOC: { printf("ALLOC %d; ", instructions[++(*pi)]); break;}
+    case EVAL: { printf("EVAL; "); break;}
+    case ADD: { printf("ADD; "); break;}
+    case SUB: { printf("SUB; "); break;}
+    case MUL: { printf("MUL; "); break;}
+    case DIV: { printf("DIV; "); break;}
+    case NEG: { printf("NEG; "); break;}
+    case EQ: { printf("EQ; "); break;}
+    case NE: { printf("NE; "); break;}
+    case LE: { printf("LE; "); break;}
+    case LT: { printf("LT; "); break;}
+    case GE: { printf("GE; "); break;}
+    case GT: { printf("GT; "); break;}
+    case JFALSE: { printf("JFALSE %d;", instructions[++(*pi)]); break;}
+    case LABEL: { printf("LABEL; "); break;}
     default: printf("<unknown> ");
   }
 }

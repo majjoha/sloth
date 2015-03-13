@@ -15,6 +15,20 @@
 #define UPDATE     7
 #define POP        8
 #define ALLOC      9
+#define EVAL       10
+#define ADD        11
+#define SUB        12
+#define MUL        13
+#define DIV        14
+#define NEG        15
+#define EQ         16
+#define NE         17
+#define LE         18
+#define LT         19
+#define GE         20
+#define GT         21
+#define JFALSE     22
+#define LABEL      23
 
 #define APP_NODE     0
 #define INTEGER_NODE 1
