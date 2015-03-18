@@ -3,6 +3,7 @@
 
 #define STACK_SIZE 1000
 #define HEAP_SIZE  1000
+#define DUMP_SIZE  100
 #define LAST_INSTRUCTION -1
 
 #define PUSHGLOBAL 0
@@ -43,7 +44,12 @@
 
 #define GetTag(h) (h>>24)
 #define GtoAIndex(i) sp-(i)
+#define GetPc(di) (di>>24)
+#define GetSd(di) ((di>>12)&0xfff)
+#define GetBp(di) (di&0xfff)
+#define GetCurrentBp() GetBp(dump[dp])
 
 typedef unsigned int word;
+typedef unsigned int dump_item;
 
 #endif

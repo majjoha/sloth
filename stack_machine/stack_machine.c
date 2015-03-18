@@ -17,8 +17,12 @@ word* afterHeap;
 word* lastFreeHeapNode;
 int verbose = 0;
 
-word mkheader(unsigned int tag, unsigned int length, unsigned int color) { 
+word make_header(unsigned int tag, unsigned int length, unsigned int color) { 
   return (tag << 24) | (length << 2) | color;
+}
+
+dump_item make_dump_item(unsigned int pc, unsigned int sd, unsigned int bp) {
+  return (pc << 24) | (sd << 12) | bp;
 }
 
 void init_heap() {
@@ -28,15 +32,16 @@ void init_heap() {
 }
 
 word* allocate(unsigned int tag, unsigned int length) {
-  *lastFreeHeapNode = mkheader(tag, length, Blue);
+  *lastFreeHeapNode = make_header(tag, length, Blue);
   word* heapNode = lastFreeHeapNode;
   lastFreeHeapNode = lastFreeHeapNode + length + 1;
   return heapNode;
 }
 
-int execute_instructions(int* program, word** stack) {
+int execute_instructions(int* program, word** stack, dump_item* dump) {
   int sp = -1;
-  int pc = 0;
+  int pc = 1;
+  int dp = -1;
 
   for (;;) {
     if (verbose) {
@@ -78,8 +83,14 @@ int execute_instructions(int* program, word** stack) {
       case UNWIND: {
         switch (GetTag(*stack[sp])) {
           case INTEGER_NODE: {
-            word* integer_node = stack[sp];
-            return integer_node[1];
+            if (dp == 0) {
+              word* integer_node = stack[sp];
+              return integer_node[1];
+            }
+
+            dp--;
+            pc = GetPc(dump[pc]);
+            break;
           }  
           case APP_NODE: {
             word* app_node = stack[sp];
@@ -118,7 +129,7 @@ int execute_instructions(int* program, word** stack) {
         word* node = stack[sp];
         int n = program[pc++];
         if (n > sp) {
-          sp = 0;
+          sp = GetCurrentBp();
         } else {
           sp = GtoAIndex(n);
         }
@@ -136,13 +147,13 @@ int execute_instructions(int* program, word** stack) {
         // find update target
         if (n > sp)
         {
-          temp = 0;
+          temp = GetCurrentBp();
         } else {
           temp = GtoAIndex(n);
         }
         word* old_node = stack[temp];
         // convert old node into indirection node
-        *old_node = mkheader(IND_NODE, 1, Blue);
+        *old_node = make_header(IND_NODE, 1, Blue);
         // set indirection node to point to the node from the tip of the spine
         old_node[1] = (word) node;
         break;
@@ -151,7 +162,7 @@ int execute_instructions(int* program, word** stack) {
         int n = program[pc++];
         if (n > sp)
         {
-          sp = 0;
+          sp = GetCurrentBp();
         } else {
           sp = sp - n;
         }
@@ -168,6 +179,32 @@ int execute_instructions(int* program, word** stack) {
         }
         break;
       }
+      case EVAL: {
+        int new_bp, new_sd;
+
+        if (dp == -1) {
+          new_bp = 0;
+          new_sd = sp;
+        } else {
+          new_bp = GetBp(dump[dp]) + GetSd(dump[dp]);
+          new_sd = sp - new_bp;
+        }
+
+        dump_item di = make_dump_item(pc, new_sd, new_bp);
+        dump[++dp] = di;
+        pc = 0;
+        break;
+      }
+      case ADD: {
+        word* pa = stack[sp--];
+        word* pb = stack[sp];
+        int a = pa[1];
+        int b = pb[1];
+        word* integer_node = allocate(INTEGER_NODE, 1);
+        integer_node[1] = a + b;
+        stack[sp] = integer_node;
+        break;
+      }
       default:
         printf("Illegal instruction %d at address %d\n", program[pc-1], pc-1);
         exit(EXIT_FAILURE);
@@ -180,9 +217,10 @@ int execute_instructions(int* program, word** stack) {
 int execute(char* filename) {
   int* program = read_file(filename);
   word** stack = (word**)malloc(sizeof(word*) * STACK_SIZE);
+  dump_item* dump = (dump_item*)malloc(sizeof(dump_item) * DUMP_SIZE);
   init_heap();
 
-  return execute_instructions(program, stack);
+  return execute_instructions(program, stack, dump);
 }
 
 int main(int argc, char* argv[]) {
