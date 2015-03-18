@@ -25,6 +25,10 @@ dump_item make_dump_item(unsigned int pc, unsigned int sd, unsigned int bp) {
   return (pc << 24) | (sd << 12) | bp;
 }
 
+int unbox_integer(word* word) {
+  return word[1];
+}
+
 void init_heap() {
   heap = (word*)malloc(sizeof(word)*HEAP_SIZE);
   afterHeap = &heap[HEAP_SIZE];
@@ -42,6 +46,7 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
   int sp = -1;
   int pc = 1;
   int dp = -1;
+  int scp = 0;
 
   for (;;) {
     if (verbose) {
@@ -109,7 +114,7 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
               word* app_node = stack[sp-(i+1)];
               stack[sp-i] = (word*) app_node[2];
             }
-            pc++;
+            scp = pc++;
             break;
           }
           case IND_NODE: {
@@ -196,13 +201,47 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
         break;
       }
       case ADD: {
-        word* pa = stack[sp--];
-        word* pb = stack[sp];
-        int a = pa[1];
-        int b = pb[1];
+        int a = unbox_integer(stack[sp--]);
+        int b = unbox_integer(stack[sp]);
         word* integer_node = allocate(INTEGER_NODE, 1);
         integer_node[1] = a + b;
         stack[sp] = integer_node;
+        break;
+      }
+      case SUB: {
+        int a = unbox_integer(stack[sp--]);
+        int b = unbox_integer(stack[sp]);
+        word* integer_node = allocate(INTEGER_NODE, 1);
+        integer_node[1] = b - a;
+        stack[sp] = integer_node;
+        break;
+      }
+      case MUL: {
+        int a = unbox_integer(stack[sp--]);
+        int b = unbox_integer(stack[sp]);
+        word* integer_node = allocate(INTEGER_NODE, 1);
+        integer_node[1] = a * b;
+        stack[sp] = integer_node;
+        break;
+      }
+      case EQ: {
+        int a = unbox_integer(stack[sp--]);
+        int b = unbox_integer(stack[sp]);
+        word* integer_node = allocate(INTEGER_NODE, 1);
+        integer_node[1] = (a == b);
+        stack[sp] = integer_node;
+        break;
+      }
+      case JFALSE: {
+        int condition = unbox_integer(stack[sp--]);
+        if (condition) {
+          pc++;
+        } else {
+          pc = program[pc]+scp;
+        }
+        break;
+      }
+      case LABEL: {
         break;
       }
       default:
