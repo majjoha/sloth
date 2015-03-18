@@ -15,13 +15,13 @@ let compPrim =
     ("mul", 2, [Push 1; Eval; Push 1; Eval; Mul; Update 2; Pop 2; Unwind]);
     ("div", 2, [Push 1; Eval; Push 1; Eval; Div; Update 2; Pop 2; Unwind]);
     ("neg", 1, [Push 0; Eval; Neg; Update 1; Pop 1; Unwind]);
-    ("eq", 2, [Push 1; Eval; Push 1; Eval; Eq; Update 2; Pop 2; Unwind]);
+    ("eq",  2, [Push 1; Eval; Push 1; Eval; Eq; Update 2; Pop 2; Unwind]);
     ("neq", 2, [Push 1; Eval; Push 1; Eval; Ne; Update 2; Pop 2; Unwind]);
-    ("lt", 2, [Push 1; Eval; Push 1; Eval; Lt; Update 2; Pop 2; Unwind]);
-    ("le", 2, [Push 1; Eval; Push 1; Eval; Le; Update 2; Pop 2; Unwind]);
-    ("gt", 2, [Push 1; Eval; Push 1; Eval; Gt; Update 2; Pop 2; Unwind]);
-    ("ge", 2, [Push 1; Eval; Push 1; Eval; Ge; Update 2; Pop 2; Unwind]);
-    ("if", 3, [Push 0; Eval; Jfalse "L1"; Push 1; Jump "L2"; Label "L1";
+    ("lt",  2, [Push 1; Eval; Push 1; Eval; Lt; Update 2; Pop 2; Unwind]);
+    ("le",  2, [Push 1; Eval; Push 1; Eval; Le; Update 2; Pop 2; Unwind]);
+    ("gt",  2, [Push 1; Eval; Push 1; Eval; Gt; Update 2; Pop 2; Unwind]);
+    ("ge",  2, [Push 1; Eval; Push 1; Eval; Ge; Update 2; Pop 2; Unwind]);
+    ("if",  3, [Push 0; Eval; Jfalse "L1"; Push 1; Jump "L2"; Label "L1";
                Push 2; Label "L2"; Eval; Update 3; Pop 3; Unwind])
   ]
 ;;
