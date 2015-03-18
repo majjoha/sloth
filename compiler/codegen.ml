@@ -26,7 +26,7 @@ let incrementInstructionCount (count:int) (instr:instruction) : int =
     | Ge             -> count+1
     | Gt             -> count+1
     | Jfalse _       -> count+2
-    | Label _        -> count+2
+    | Label _        -> count+1
 ;;
 
 let rec generateScEnv (compiledScs:compiledSc list) (instructionCount:int) : env =
@@ -92,7 +92,9 @@ let rec codeGenerationHelper (compiledScs : compiledSc list) (labelEnv : (string
 
 let codeGeneration (compiledScs : compiledSc list) : int list =
   let labelEnv = generateScEnv compiledScs
-                 (incrementInstructionCount (incrementInstructionCount 0 (Pushglobal "main")) Eval) in
-  (instructionToCode (Pushglobal "main") labelEnv) @ (instructionToCode Eval labelEnv)
+                 (incrementInstructionCount (incrementInstructionCount (incrementInstructionCount 0 Unwind) (Pushglobal "main")) Eval) in
+  (instructionToCode Unwind labelEnv)
+  @ (instructionToCode (Pushglobal "main") labelEnv)
+  @ (instructionToCode Eval labelEnv)
   @ codeGenerationHelper compiledScs labelEnv
 ;;
