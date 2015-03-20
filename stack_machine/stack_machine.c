@@ -53,8 +53,10 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
     if (verbose) {
       int vpc = pc;
       print_stack(sp, stack);
+      printf("\nPC: %d\t", pc);
+      printf("Current instruction: ");
       print_instruction(program, &vpc);
-      printf("\n");
+      printf("\n\n*************************************\n\n");
     }
 
     switch (program[pc++]) {
@@ -94,8 +96,7 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
               return integer_node[1];
             }
 
-            dp--;
-            pc = GetPc(dump[pc]);
+            pc = GetPc(dump[dp--]);
             break;
           }  
           case APP_NODE: {

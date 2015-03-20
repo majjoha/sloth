@@ -44,9 +44,9 @@
 
 #define GetTag(h) (h>>24)
 #define GtoAIndex(i) sp-(i)
-#define GetPc(di) (di>>24)
-#define GetSd(di) ((di>>12)&0xfff)
-#define GetBp(di) (di&0xfff)
+#define GetPc(di) ((di)>>24)
+#define GetSd(di) (((di)>>12)&0xfff)
+#define GetBp(di) ((di)&0xfff)
 #define GetCurrentBp() GetBp(dump[dp])
 
 typedef unsigned int word;
