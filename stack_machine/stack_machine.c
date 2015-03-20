@@ -12,6 +12,9 @@ The first instruction in a supercombinator is the number of input arguments to t
 
 The first instruction in the program is always Unwind. This used when unwinding a new stack after eval.
 
+dp points to the current dump item. The current dump item contains information
+about the previous stack context.
+
 */
 
 word* heap;
