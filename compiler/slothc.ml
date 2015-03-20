@@ -35,12 +35,13 @@ let () =
   try
     match (Array.length Sys.argv) with
     | 2 -> let filename = Sys.argv.(1) in
+           Printf.fprintf stdout "Filename: %s\n" filename;
            let outname = (Filename.chop_extension (Sys.argv.(1)) ^ ".slo") in
            sourceToSlo filename outname
     | 3 -> let filename = Sys.argv.(1) in
            let outname = Sys.argv.(2) in
            sourceToSlo filename outname
-    | e -> prerr_string "Usage: slothc filename [outfile].\n";
+    | e -> Printf.fprintf stdout "Number of args: %d\n" (Array.length Sys.argv); prerr_string "Usage: slothc filename [outfile].\n";
   with e ->
     prerr_string "You need to pass a valid file path.\n";
     prerr_string "Usage: slothc filename [outfile].\n";

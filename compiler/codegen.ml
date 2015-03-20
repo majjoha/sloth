@@ -49,8 +49,10 @@ let addLabelAndIncrement (countAndLabelEnv:int * env) (instruction:instruction) 
   (incrementInstructionCount count instruction, labelEnv2)
 ;;
 
-let generateLocalLabelEnv (instructions:instruction list) : env =
-  snd (List.fold_left addLabelAndIncrement (0, []) instructions)
+let generateLocalLabelEnv (instructions:instruction list) (scIndex:int) : env =
+  List.map 
+    (fun (n, i) -> (n, scIndex+i+1))
+    (snd (List.fold_left addLabelAndIncrement (0, []) instructions)) 
 ;;
 
 let instructionToCode (instruction:instruction) (labelEnv:(string * int) list) : int list = 
@@ -81,20 +83,23 @@ let instructionToCode (instruction:instruction) (labelEnv:(string * int) list) :
   | Label _ -> [23]
 ;;
 
-let rec codeGenerationHelper (compiledScs : compiledSc list) (labelEnv : (string * int) list) =
+let rec codeGenerationHelper (compiledScs : compiledSc list) (scEnv : (string * int) list) =
   match compiledScs with
   | [] -> []
   | (name, args, body)::rest ->
-      let env = generateLocalLabelEnv body @ labelEnv in
-      args :: List.flatten (List.map (fun inst -> instructionToCode inst env) body) @
-      codeGenerationHelper rest labelEnv
+      let localEnv = generateLocalLabelEnv body (lookup scEnv name) in
+      Printf.fprintf stdout "SC name: %s\n" name;
+      printEnv localEnv;
+      args :: List.flatten (List.map (fun inst -> instructionToCode inst (localEnv @ scEnv)) body) @
+      codeGenerationHelper rest scEnv
 ;;
 
 let codeGeneration (compiledScs : compiledSc list) : int list =
-  let labelEnv = generateScEnv compiledScs
+  let scEnv = generateScEnv compiledScs
                  (incrementInstructionCount (incrementInstructionCount (incrementInstructionCount 0 Unwind) (Pushglobal "main")) Eval) in
-  (instructionToCode Unwind labelEnv)
-  @ (instructionToCode (Pushglobal "main") labelEnv)
-  @ (instructionToCode Eval labelEnv)
-  @ codeGenerationHelper compiledScs labelEnv
+  printEnv scEnv;
+  (instructionToCode Unwind scEnv)
+  @ (instructionToCode (Pushglobal "main") scEnv)
+  @ (instructionToCode Eval scEnv)
+  @ codeGenerationHelper compiledScs scEnv
 ;;
