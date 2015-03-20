@@ -1,1 +1,2 @@
-main = if 1 42 2
+condition = eq 1 0;
+main = if condition (add 42 2) 2

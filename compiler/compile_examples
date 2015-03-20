@@ -1,0 +1,3 @@
+#! /usr/bin/env bash
+
+find ../examples -name "*.sl" | xargs -n 1 ./slothc

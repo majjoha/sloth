@@ -10,6 +10,8 @@ NOTES
 
 The first instruction in a supercombinator is the number of input arguments to the supercombinator.
 
+The first instruction in the program is always Unwind. This used when unwinding a new stack after eval.
+
 */
 
 word* heap;
@@ -46,7 +48,6 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
   int sp = -1;
   int pc = 1;
   int dp = -1;
-  int scp = 0;
 
   for (;;) {
     if (verbose) {
@@ -114,7 +115,7 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
               word* app_node = stack[sp-(i+1)];
               stack[sp-i] = (word*) app_node[2];
             }
-            scp = pc++;
+            pc++;
             break;
           }
           case IND_NODE: {
@@ -197,6 +198,7 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
 
         dump_item di = make_dump_item(pc, new_sd, new_bp);
         dump[++dp] = di;
+        // go to global unwind
         pc = 0;
         break;
       }
@@ -237,7 +239,7 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
         if (condition) {
           pc++;
         } else {
-          pc = program[pc]+scp;
+          pc = program[pc];
         }
         break;
       }
