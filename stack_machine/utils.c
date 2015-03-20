@@ -1,5 +1,7 @@
 #include "utils.h"
 
+extern word* heap;
+
 void print_instructions(int* instructions) {
   for (int i = 0; instructions[i] != LAST_INSTRUCTION; i++) {
     print_instruction(instructions, &i);
@@ -37,11 +39,67 @@ void print_instruction(int* instructions, int* pi) {
   }
 }
 
+char* tag_to_name(int tag) {
+  switch (tag) {
+    case APP_NODE: return "APP NODE";
+    case INTEGER_NODE: return "INTEGER NODE";
+    case GLOBAL_NODE: return "GLOBAL NODE";
+    case IND_NODE: return "INDIRECTION NODE";
+    case NULL_NODE: return "NULL NODE";
+    default: exit(EXIT_FAILURE);
+  }
+}
+
+int address_to_heap_index(word* node) {
+  return node - heap;
+}
+
+void print_node(word* node, int tab_factor) {
+  int tag = GetTag(*node);
+  printf("(%d) %s: ", address_to_heap_index(node), tag_to_name(tag));
+
+  switch (tag) {
+    case APP_NODE: {
+      // Print left node
+      printf("\n");
+      for (int i = 0; i < tab_factor; i++) printf("\t");
+      printf("\tLeft: ");
+      print_node((word*)node[1], tab_factor+1);
+
+      // Print right node
+      for (int i = 0; i < tab_factor; i++) printf("\t");
+      printf("\tRight: ");
+      print_node((word*)node[2], tab_factor+1);
+      break;
+    }
+    case INTEGER_NODE: {
+      printf("%d\n", node[1]);
+      break;
+    }
+    case GLOBAL_NODE: {
+      printf("%d\n", node[1]);
+      break;
+    }
+    case IND_NODE: {
+      for (int i = 0; i < tab_factor; i++) printf("\t");
+      print_node((word*)node[1], tab_factor+1);
+      printf("\n");
+      break;
+    }
+    case NULL_NODE: {
+      printf("\n");
+      break;
+    }
+    default: { exit(EXIT_FAILURE); }
+  }
+}
+
 void print_stack(int sp, word** stack) {
   if (sp < 0) return;
 
   for (int i = 0; i != sp+1; i++) {
-    printf("%d\n", GetTag(*stack[i]));
+    word* node = stack[i];
+    print_node(node, 0);
   }
 }
 
