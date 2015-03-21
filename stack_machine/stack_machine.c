@@ -87,8 +87,7 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
         word* app_node = allocate(APP_NODE, 2);
         app_node[1] = (word) left;
         app_node[2] = (word) right;
-        stack[sp-1] = app_node;
-        sp--;
+        stack[--sp] = app_node;
         break;
       }
       case UNWIND: {
