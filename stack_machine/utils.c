@@ -54,9 +54,24 @@ int address_to_heap_index(word* node) {
   return node - heap;
 }
 
-void print_node(word* node, int tab_factor) {
+void print_node(word* node, int tab_factor, list_node* visited_nodes) {
   int tag = GetTag(*node);
-  printf("(%d) %s: ", address_to_heap_index(node), tag_to_name(tag));
+  int heap_index = address_to_heap_index(node);
+  printf("(%d) %s: ", heap_index, tag_to_name(tag));
+
+  if (visited_nodes == NULL)
+  {
+    visited_nodes = create_node(heap_index);
+  }
+  else if(contains_key(visited_nodes, heap_index))
+  {
+    printf("Already visited\n");
+    return;
+  }
+  else
+  {
+    visited_nodes = put_key(visited_nodes, heap_index);
+  }
 
   switch (tag) {
     case APP_NODE: {
@@ -64,12 +79,12 @@ void print_node(word* node, int tab_factor) {
       printf("\n");
       for (int i = 0; i < tab_factor; i++) printf("\t");
       printf("\tLeft: ");
-      print_node((word*)node[1], tab_factor+1);
+      print_node((word*)node[1], tab_factor+1, visited_nodes);
 
       // Print right node
       for (int i = 0; i < tab_factor; i++) printf("\t");
       printf("\tRight: ");
-      print_node((word*)node[2], tab_factor+1);
+      print_node((word*)node[2], tab_factor+1, visited_nodes);
       break;
     }
     case INTEGER_NODE: {
@@ -81,9 +96,9 @@ void print_node(word* node, int tab_factor) {
       break;
     }
     case IND_NODE: {
+      printf("\n\t");
       for (int i = 0; i < tab_factor; i++) printf("\t");
-      print_node((word*)node[1], tab_factor+1);
-      printf("\n");
+      print_node((word*)node[1], tab_factor+1, visited_nodes);
       break;
     }
     case NULL_NODE: {
@@ -92,14 +107,17 @@ void print_node(word* node, int tab_factor) {
     }
     default: { exit(EXIT_FAILURE); }
   }
+
+  remove_key(visited_nodes, heap_index);
 }
 
 void print_stack(int sp, word** stack) {
   if (sp < 0) return;
-
+  
+  list_node* visited_nodes = NULL;
   for (int i = 0; i != sp+1; i++) {
     word* node = stack[i];
-    print_node(node, 0);
+    print_node(node, 0, visited_nodes);
   }
 }
 

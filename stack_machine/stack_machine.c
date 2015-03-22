@@ -56,7 +56,7 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
     if (verbose) {
       int vpc = pc;
       print_stack(sp, stack);
-      printf("\nPC: %d\t", pc);
+      printf("\nPC: %d\t\t", pc);
       printf("Current instruction: ");
       print_instruction(program, &vpc);
       printf("\n\n*************************************\n\n");

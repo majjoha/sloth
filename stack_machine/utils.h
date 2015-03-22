@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "stack_machine.h"
+#include "linked_list.h"
 
 #ifndef UTILS_H
 #define UTILS_H
