@@ -30,12 +30,16 @@
 #define GT         21
 #define JFALSE     22
 #define LABEL      23
+#define PACK       24
+#define SPLIT      25
+#define CASEJUMP   26
 
 #define APP_NODE     0
 #define INTEGER_NODE 1
 #define GLOBAL_NODE  2
 #define IND_NODE 3
 #define NULL_NODE 4
+#define PACK_NODE 5
 
 #define White 0
 #define Grey  1

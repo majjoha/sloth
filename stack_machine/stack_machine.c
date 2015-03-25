@@ -47,7 +47,7 @@ word* allocate(unsigned int tag, unsigned int length) {
   return heapNode;
 }
 
-int execute_instructions(int* program, word** stack, dump_item* dump) {
+void execute_instructions(int* program, word** stack, dump_item* dump) {
   int sp = -1;
   int pc = 1;
   int dp = -1;
@@ -95,7 +95,8 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
           case INTEGER_NODE: {
             if (dp == 0) {
               word* integer_node = stack[sp];
-              return integer_node[1];
+              print_result(integer_node);
+              return;
             }
 
             pc = GetPc(dump[dp--]);
@@ -126,6 +127,24 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
             word* node = (word*) ind_node[1];
             stack[sp] = node;
             pc--;
+            break;
+          }
+          case PACK_NODE: {
+            word* pack_node = stack[sp];
+            int n = pack_node[2];
+
+            for (int i = 0; i < n; i++)
+            {
+              word* app_node = stack[sp-(i+1)];
+              pack_node[3+i] = app_node[2];
+            }
+
+            if (dp == 0) {
+              print_result(pack_node);
+              return;
+            }
+
+            pc = GetPc(dump[dp--]);
             break;
           }
           default:
@@ -217,7 +236,7 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
         int a = unbox_integer(stack[sp--]);
         int b = unbox_integer(stack[sp]);
         word* integer_node = allocate(INTEGER_NODE, 1);
-        integer_node[1] = b - a;
+        integer_node[1] = a - b;
         stack[sp] = integer_node;
         break;
       }
@@ -304,13 +323,59 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
       case LABEL: {
         break;
       }
+      case PACK: {
+        int tag = program[pc++];
+        int n = program[pc++];
+        word* pack_node = allocate(PACK_NODE, 2+n);
+        pack_node[1] = tag;
+        pack_node[2] = n;
+        stack[++sp] = pack_node;
+        break;
+      }
+      case SPLIT: {
+        int n = program[pc++];
+        word* pack_node = stack[sp];
+
+        for (int i = n+2; i >= 3; i--)
+        {
+          stack[++sp] = (word*)pack_node[i];
+        }
+
+        break;
+      }
+      case CASEJUMP: {
+        int n = program[pc++];
+        word* pack_node = stack[sp];
+        int matched = 0;
+
+        printf("Casejumpin'\n");
+
+        for (int i = 0; i < n*2; i = i+2) {
+          int tag = program[pc+i];
+          int lab = program[pc+i+1];
+
+          printf("TAG: %d\n", tag);
+          printf("LAB: %d\n", lab);
+          printf("pack_node: %d\n", pack_node[1]);
+
+          if (tag == pack_node[1]) {
+            pc = lab;
+            matched = 1;
+            break;
+          }
+        }
+
+        if (!matched) {
+          printf("Illegal casejump. No matching tag.\n");
+          exit(EXIT_FAILURE);
+        }
+        break;
+      }
       default:
         printf("Illegal instruction %d at address %d\n", program[pc-1], pc-1);
         exit(EXIT_FAILURE);
     }
   }
-
-  return 1;
 }
 
 int execute(char* filename) {
@@ -319,7 +384,9 @@ int execute(char* filename) {
   dump_item* dump = (dump_item*)malloc(sizeof(dump_item) * DUMP_SIZE);
   init_heap();
 
-  return execute_instructions(program, stack, dump);
+  execute_instructions(program, stack, dump);
+
+  return 0;
 }
 
 int main(int argc, char* argv[]) {
@@ -335,7 +402,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (runValid) {
-    printf("Result: %d\n", execute(argv[fileIndex]));
+    execute(argv[fileIndex]);
     return 0;
   } else {
     printf("You need to pass a file to the stack machine.\n");

@@ -25,4 +25,4 @@ type instruction =
   | Label of string
   | Pack of int * int
   | Split of int
-  | Casejump of string list
+  | Casejump of (int * string) list

@@ -35,6 +35,9 @@ void print_instruction(int* instructions, int* pi) {
     case GT: { printf("GT; "); break;}
     case JFALSE: { printf("JFALSE %d;", instructions[++(*pi)]); break;}
     case LABEL: { printf("LABEL; "); break;}
+    case PACK: { printf("PACK %d %d;", instructions[++(*pi)], instructions[++(*pi)]); break;}
+    case SPLIT: { printf("SPLIT %d;", instructions[++(*pi)]); break;}
+    case CASEJUMP: { printf("CASEJUMP;"); break;}
     default: printf("<unknown> ");
   }
 }
@@ -46,6 +49,7 @@ char* tag_to_name(int tag) {
     case GLOBAL_NODE: return "GLOBAL NODE";
     case IND_NODE: return "INDIRECTION NODE";
     case NULL_NODE: return "NULL NODE";
+    case PACK_NODE: return "PACK_NODE";
     default: exit(EXIT_FAILURE);
   }
 }
@@ -105,10 +109,48 @@ void print_node(word* node, int tab_factor, list_node* visited_nodes) {
       printf("\n");
       break;
     }
+    case PACK_NODE: {
+      printf("PACK_NODE\n");
+      break;
+    }
     default: { exit(EXIT_FAILURE); }
   }
 
   remove_key(visited_nodes, heap_index);
+}
+
+void print_result(word* node) {
+  switch (GetTag(*node)) {
+    case APP_NODE: {
+      printf("APP_NODE\n");
+      break;
+    }
+    case INTEGER_NODE: {
+      printf("%d\n", node[1]);
+      break;
+    }
+    case GLOBAL_NODE: {
+      printf("GLOBAL_NODE\n");
+      break;
+    }
+    case IND_NODE: {
+      printf("IND_NODE\n");
+      break;
+    }
+    case NULL_NODE: {
+      printf("NULL_NODE\n");
+      break;
+    }
+    case PACK_NODE: {
+      int n = node[2];
+      printf("PACK_NODE\n");
+      printf("TAG: %d\n", node[1]);
+      for (int i = 0; i < n; i++) {
+        print_result((word*)node[3+i]);
+      }
+      break;
+    }
+  }
 }
 
 void print_stack(int sp, word** stack) {

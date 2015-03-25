@@ -38,20 +38,13 @@ scdefns:
 ;
 
 scdefn:
-  | i1 = IDENT; i2 = idents; EQ; e = higherExpr   { (i1, i2, e) }
+  | i1 = IDENT; i2 = idents; EQ; e = expr   { (i1, i2, e) }
 ;
 
 idents:
   | s = IDENT; i = idents                    { s :: i }
   | s = IDENT                                { [s]    }
   |                                          { []     }
-;
-
-higherExpr:
-  | LET; d = defns; IN; e = higherExpr             { Let(d, e)               }
-  | LETREC; d = defns; IN; e = higherExpr          { Letrec(d, e)            }
-  | CASE; e = higherExpr; OF; a = alts; END        { Case(e, a)              }
-  | e = expr;                                      { e }
 ;
 
 expr:
@@ -74,6 +67,9 @@ expr:
   | e1 = expr; CONS; e2 = expr               { App(App(Pack(2, 2), e1), e2) }
   | a = aexpr                                { a                       }
   | ap = appexpr                             { ap }
+  | LET; d = defns; IN; e = expr             { Let(d, e)               }
+  | LETREC; d = defns; IN; e = expr          { Letrec(d, e)            }
+  | CASE; e = expr; OF; a = alts; END        { Case(e, a)              }
 ;
 
 aexpr:

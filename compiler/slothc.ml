@@ -43,7 +43,8 @@ let () =
            sourceToSlo filename outname
     | e -> Printf.fprintf stdout "Number of args: %d\n" (Array.length Sys.argv); prerr_string "Usage: slothc filename [outfile].\n";
   with e ->
-    prerr_string "You need to pass a valid file path.\n";
-    prerr_string "Usage: slothc filename [outfile].\n";
+    prerr_string "\nError: ";
+    prerr_string (Printexc.to_string e);
+    prerr_string "\nUsage: slothc filename [outfile].\n";
   exit 0
 ;;

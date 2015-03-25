@@ -8,6 +8,7 @@
 
 void print_instructions(int* instructions);
 void print_instruction(int* instructions, int* pi);
+void print_result(word* node);
 void print_stack(int sp, word** stack);
 int* read_file(char* filename);
 
