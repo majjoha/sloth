@@ -229,11 +229,66 @@ int execute_instructions(int* program, word** stack, dump_item* dump) {
         stack[sp] = integer_node;
         break;
       }
+      case DIV: {
+        int a = unbox_integer(stack[sp--]);
+        int b = unbox_integer(stack[sp]);
+        word* integer_node = allocate(INTEGER_NODE, 1);
+        integer_node[1] = a / b;
+        stack[sp] = integer_node;
+        break;
+      }
+      case NEG: {
+        int a = unbox_integer(stack[sp--]);
+        word* integer_node = allocate(INTEGER_NODE, 1);
+        integer_node[1] = -a;
+        stack[sp] = integer_node;
+        break;
+      }
       case EQ: {
         int a = unbox_integer(stack[sp--]);
         int b = unbox_integer(stack[sp]);
         word* integer_node = allocate(INTEGER_NODE, 1);
         integer_node[1] = (a == b);
+        stack[sp] = integer_node;
+        break;
+      }
+      case NE: {
+        int a = unbox_integer(stack[sp--]);
+        int b = unbox_integer(stack[sp]);
+        word* integer_node = allocate(INTEGER_NODE, 1);
+        integer_node[1] = (a != b);
+        stack[sp] = integer_node;
+        break;
+      }
+      case LE: {
+        int a = unbox_integer(stack[sp--]);
+        int b = unbox_integer(stack[sp]);
+        word* integer_node = allocate(INTEGER_NODE, 1);
+        integer_node[1] = (a <= b);
+        stack[sp] = integer_node;
+        break;
+      }
+      case LT: {
+        int a = unbox_integer(stack[sp--]);
+        int b = unbox_integer(stack[sp]);
+        word* integer_node = allocate(INTEGER_NODE, 1);
+        integer_node[1] = (a < b);
+        stack[sp] = integer_node;
+        break;
+      }
+      case GE: {
+        int a = unbox_integer(stack[sp--]);
+        int b = unbox_integer(stack[sp]);
+        word* integer_node = allocate(INTEGER_NODE, 1);
+        integer_node[1] = (a >= b);
+        stack[sp] = integer_node;
+        break;
+      }
+      case GT: {
+        int a = unbox_integer(stack[sp--]);
+        int b = unbox_integer(stack[sp]);
+        word* integer_node = allocate(INTEGER_NODE, 1);
+        integer_node[1] = (a > b);
         stack[sp] = integer_node;
         break;
       }
