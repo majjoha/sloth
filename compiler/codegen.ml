@@ -27,6 +27,9 @@ let incrementInstructionCount (count:int) (instr:instruction) : int =
     | Gt             -> count+1
     | Jfalse _       -> count+2
     | Label _        -> count+1
+    | Pack _         -> count+3
+    | Split _        -> count+2
+    | Casejump ls    -> count+1+(List.length ls)
 ;;
 
 let rec generateScEnv (compiledScs:compiledSc list) (instructionCount:int) : env =
@@ -81,6 +84,9 @@ let instructionToCode (instruction:instruction) (labelEnv:(string * int) list) :
   | Gt -> [21]
   | Jfalse l -> [22; (lookup labelEnv l)]
   | Label _ -> [23]
+  | Pack (i, j) -> [24; i; j]
+  | Split i -> [25; i]
+  | Casejump ls -> [25] (*@ (enfunktion ls)*) 
 ;;
 
 let rec codeGenerationHelper (compiledScs : compiledSc list) (scEnv : (string * int) list) =

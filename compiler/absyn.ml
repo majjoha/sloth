@@ -5,7 +5,7 @@ and scdefn = string * string list * expr
 and expr =
   | Var of string
   | Num of int
-  | Constr of int * int
+  | Pack of int * int
   | Sel of int * int
   | App of expr * expr
   | Let of (string * expr) list * expr

@@ -8,6 +8,10 @@ type compiledSc = (string * int * instruction list);;
 
 let failwith msg = raise (Failure msg);;
 
+let nextlab = ref 2;;
+
+let newLabel () = (nextlab := 1 + !nextlab; "L" ^ (string_of_int !nextlab));;
+
 let compPrim =
   [
     ("add", 2, [Push 1; Eval; Push 1; Eval; Add; Update 2; Pop 2; Unwind]);
@@ -46,7 +50,18 @@ let argOffset (env:env) (n:int) =
   List.map (fun (v,m) -> (v,m+n)) env
 ;;
 
-let rec compC (expr:expr) (env:env) =
+let rec compA (alt:alt) (label:string) (endLabel:string) (env:env) =
+  let (tag, vars, body) = alt in
+  let n = List.length vars in
+  let newEnv = ((List.mapi (fun i var -> (var, i))) vars) @ (argOffset env n) in
+  [Label label; Split n] @ compC body newEnv @ [Slide n; Jump endLabel]
+
+and compAlts (alts:alt list) (labels:string list) (endLabel:string) (env:env) =
+  let zipped = List.combine alts labels in
+  let compAlts = List.map (fun (a, l) -> compA a l endLabel env) zipped in
+  (List.flatten compAlts) @ [Label endLabel]
+
+and compC (expr:expr) (env:env) =
   match expr with
   | Var s -> if inEnv env s then [Push (lookup env s)] else [Pushglobal s]
   | Num n -> [Pushint n]
@@ -60,6 +75,11 @@ let rec compC (expr:expr) (env:env) =
       let newEnv = (List.mapi (fun i (s, e) -> (s, i)) (List.rev defns)) @ argOffset env (List.length defns) in
       let compDefns = List.flatten (List.mapi (fun i (s, e) -> compC e newEnv @ [Update (defnsLen - (i+1))]) defns) in
       [Alloc (List.length defns)] @ compDefns @ (compC body newEnv) @ [Slide (List.length defns)]
+  | Case(e, alts) ->
+      let compExpr = compC e env in
+      let ls = List.map (fun (t, _, _) -> (t, newLabel())) alts in
+      let endLabel = newLabel() in
+      compExpr @ [Casejump ls] @ (compAlts alts ls endLabel env)
   | _ -> failwith "Unimplemented expression type."
 ;;
 

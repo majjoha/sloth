@@ -55,23 +55,23 @@ higherExpr:
 ;
 
 expr:
-  | e1 = expr; PLUS; e2 = expr               { App(App(Var "PLUS", e1), e2) }
-  | e1 = expr; MINUS; e2 = expr              { App(App(Var "MINUS", e1), e2) }
-  | e1 = expr; TIMES; e2 = expr              { App(App(Var "TIMES", e1), e2) }
-  | e1 = expr; DIV; e2 = expr                { App(App(Var "DIV", e1), e2) }
-  | e1 = expr; MOD; e2 = expr                { App(App(Var "MOD", e1), e2) }
-  | e1 = expr; LT; e2 = expr                 { App(App(Var "LT", e1), e2) }
-  | e1 = expr; GT; e2 = expr                 { App(App(Var "GT", e1), e2) }
-  | e1 = expr; EQ; e2 = expr                 { App(App(Var "EQ", e1), e2) }
-  | e1 = expr; NEQ; e2 = expr                { App(App(Var "NEQ", e1), e2) }
-  | e1 = expr; LE; e2 = expr                 { App(App(Var "LE", e1), e2) }
-  | e1 = expr; GE; e2 = expr                 { App(App(Var "GE", e1), e2) }
-  | e1 = expr; AND; e2 = expr                { App(App(Var "AND", e1), e2) }
-  | e1 = expr; OR; e2 = expr                 { App(App(Var "OR", e1), e2) }
-  | MINUS; e = aexpr                         { App(Var "NEG", e)          }
+  | e1 = expr; PLUS; e2 = expr               { App(App(Var "add", e1), e2) }
+  | e1 = expr; MINUS; e2 = expr              { App(App(Var "sub", e1), e2) }
+  | e1 = expr; TIMES; e2 = expr              { App(App(Var "mul", e1), e2) }
+  | e1 = expr; DIV; e2 = expr                { App(App(Var "div", e1), e2) }
+  | e1 = expr; MOD; e2 = expr                { App(App(Var "mod", e1), e2) }
+  | e1 = expr; LT; e2 = expr                 { App(App(Var "lt", e1), e2) }
+  | e1 = expr; GT; e2 = expr                 { App(App(Var "gt", e1), e2) }
+  | e1 = expr; EQ; e2 = expr                 { App(App(Var "eq", e1), e2) }
+  | e1 = expr; NEQ; e2 = expr                { App(App(Var "neq", e1), e2) }
+  | e1 = expr; LE; e2 = expr                 { App(App(Var "le", e1), e2) }
+  | e1 = expr; GE; e2 = expr                 { App(App(Var "ge", e1), e2) }
+  | e1 = expr; AND; e2 = expr                { App(App(Var "and", e1), e2) }
+  | e1 = expr; OR; e2 = expr                 { App(App(Var "or", e1), e2) }
+  | MINUS; e = aexpr                         { App(Var "neg", e)          }
   | HEAD; e = expr                           { App(Sel(2, 1), e)      }
   | TAIL; e = expr                           { App(Sel(2, 2), e)      }
-  | e1 = expr; CONS; e2 = expr               { App(App(Constr(2, 2), e1), e2) }
+  | e1 = expr; CONS; e2 = expr               { App(App(Pack(2, 2), e1), e2) }
   | a = aexpr                                { a                       }
   | ap = appexpr                             { ap }
 ;
@@ -80,7 +80,7 @@ aexpr:
   | s = IDENT                                   { Var s                }
   | i = INT                                     { Num i                }
   | LPAR; e = expr; RPAR                        { e }
-  | PACK; LPAR; i1 = INT; COMMA; i2 = INT; RPAR { Constr(i1, i2)       }
+  | PACK; LPAR; i1 = INT; COMMA; i2 = INT; RPAR { Pack(i1, i2)       }
 ;
 
 appexpr:

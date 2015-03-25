@@ -23,3 +23,6 @@ type instruction =
   | Gt
   | Jfalse of string
   | Label of string
+  | Pack of int * int
+  | Split of int
+  | Casejump of string list
