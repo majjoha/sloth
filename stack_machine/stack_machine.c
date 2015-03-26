@@ -139,6 +139,10 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
               pack_node[3+i] = app_node[2];
             }
 
+            sp = sp-n;
+            // TODO: Garbage collection må ikke ske her
+            stack[sp] = pack_node;
+
             if (dp == 0) {
               print_result(pack_node);
               return;
@@ -338,8 +342,10 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
 
         for (int i = n+2; i >= 3; i--)
         {
-          stack[++sp] = (word*)pack_node[i];
+          stack[sp++] = (word*)pack_node[i];
         }
+
+        sp--;
 
         break;
       }
