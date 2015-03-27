@@ -30,6 +30,7 @@ let incrementInstructionCount (count:int) (instr:instruction) : int =
     | Pack _         -> count+3
     | Split _        -> count+2
     | Casejump ls    -> count+2+((List.length ls) * 2)
+    | Print          -> count+1
 ;;
 
 let rec generateScEnv (compiledScs:compiledSc list) (instructionCount:int) : env =
@@ -88,6 +89,7 @@ let instructionToCode (instruction:instruction) (labelEnv:(string * int) list) :
   | Split i -> [25; i]
   | Casejump ls -> [26; (List.length ls)] @
       List.fold_right (fun (t, l) acc -> [t; (lookup labelEnv l)] @ acc) ls []
+  | Print -> [27]
 ;;
 
 let rec codeGenerationHelper (compiledScs : compiledSc list) (scEnv : (string * int) list) =
@@ -103,10 +105,13 @@ let rec codeGenerationHelper (compiledScs : compiledSc list) (scEnv : (string * 
 
 let codeGeneration (compiledScs : compiledSc list) : int list =
   let scEnv = generateScEnv compiledScs
-                 (incrementInstructionCount (incrementInstructionCount (incrementInstructionCount 0 Unwind) (Pushglobal "main")) Eval) in
+    (List.fold_right (fun i c -> incrementInstructionCount c i) [Unwind; Eval; Print; Pushglobal "main"; Eval; Print] 0) in
   printEnv scEnv;
   (instructionToCode Unwind scEnv)
+  @ (instructionToCode Eval scEnv)
+  @ (instructionToCode Print scEnv)
   @ (instructionToCode (Pushglobal "main") scEnv)
   @ (instructionToCode Eval scEnv)
+  @ (instructionToCode Print scEnv)
   @ codeGenerationHelper compiledScs scEnv
 ;;
