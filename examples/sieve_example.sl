@@ -1,4 +1,30 @@
-main = take 3 (sieve (from 2));
+main = head (tailn (sieve (from 2)) 99);
+
+head xs =
+   case xs of
+   1 -> nil;
+   2 x rest -> x
+   end;
+
+tail xs =
+   case xs of
+   1 -> nil;
+   2 x rest -> rest
+   end; 
+
+tailn xs n =
+  case xs of
+  1 -> nil;
+  2 x rest -> if (n = 1) rest (tailn rest (n-1))
+  end;
+
+nil = pack(1,0);
+
+strict xs = 
+  case xs of
+  1 -> pack(1,0);
+  2 x rest -> (add x 0) : (strict rest)
+  end;
 
 from n = n : (from (n+1));
 

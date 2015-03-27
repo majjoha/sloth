@@ -27,7 +27,7 @@ word make_header(unsigned int tag, unsigned int length, unsigned int color) {
 }
 
 dump_item make_dump_item(unsigned int pc, unsigned int sd, unsigned int bp) {
-  return (pc << 24) | (sd << 12) | bp;
+  return (pc << 22) | (sd << 11) | bp;
 }
 
 int unbox_integer(word* word) {
@@ -95,7 +95,8 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
           case INTEGER_NODE: {
             if (dp == 0) {
               word* integer_node = stack[sp];
-              print_result(integer_node);
+              list_node* visited_nodes = NULL;
+              print_node(integer_node, 0, visited_nodes);
               return;
             }
 
@@ -133,18 +134,22 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
             word* pack_node = stack[sp];
             int n = pack_node[2];
 
-            for (int i = 0; i < n; i++)
+            if ((word*) pack_node[3] == NULL)
             {
-              word* app_node = stack[sp-(i+1)];
-              pack_node[3+i] = app_node[2];
+              for (int i = 0; i < n; i++)
+              {
+                word* app_node = stack[sp-(i+1)];
+                pack_node[3+i] = app_node[2];
+              }
+
+              sp = sp-n;
+              // TODO: Garbage collection må ikke ske her
+              stack[sp] = pack_node;
             }
 
-            sp = sp-n;
-            // TODO: Garbage collection må ikke ske her
-            stack[sp] = pack_node;
-
             if (dp == 0) {
-              print_result(pack_node);
+              list_node* visited_nodes = NULL;
+              print_node(pack_node, 0, visited_nodes);
               return;
             }
 
@@ -222,6 +227,8 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
           new_sd = sp - new_bp;
         }
 
+        printf("Making Dump Item\n");
+        printf("PC: %d, SD: %d, BP: %d\n", pc, new_sd, new_bp);
         dump_item di = make_dump_item(pc, new_sd, new_bp);
         dump[++dp] = di;
         // go to global unwind
@@ -333,6 +340,8 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
         word* pack_node = allocate(PACK_NODE, 2+n);
         pack_node[1] = tag;
         pack_node[2] = n;
+        pack_node[3] = (word) NULL;
+        pack_node[4] = (word) NULL;
         stack[++sp] = pack_node;
         break;
       }

@@ -79,7 +79,7 @@ and compC (expr:expr) (env:env) =
       let compExpr = compC e env in
       let ls = List.map (fun (t, _, _) -> (t, newLabel())) alts in
       let endLabel = newLabel() in
-      compExpr @ [Push 0; Eval; Casejump ls] @ (compAlts alts ls endLabel env)
+      compExpr @ [Eval; Casejump ls] @ (compAlts alts ls endLabel env)
   | Pack (t, a) ->
       [Pack (t, a)]
   | _ -> failwith "Unimplemented expression type."

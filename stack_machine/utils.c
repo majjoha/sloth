@@ -110,7 +110,20 @@ void print_node(word* node, int tab_factor, list_node* visited_nodes) {
       break;
     }
     case PACK_NODE: {
-      printf("PACK_NODE\n");
+      printf("Tag %d, Arity %d\n", node[1], node[2]);
+      if (node[2] != 0 && (word*)node[3] != NULL)
+      {
+        // Print 1st node
+        for (int i = 0; i < tab_factor; i++) printf("\t");
+        printf("\t1st: ");
+        print_node((word*)node[3], tab_factor+1, visited_nodes);
+
+        // Print 2nd node
+        for (int i = 0; i < tab_factor; i++) printf("\t");
+        printf("\t2nd: ");
+        print_node((word*)node[4], tab_factor+1, visited_nodes);
+      }
+      
       break;
     }
     default: { exit(EXIT_FAILURE); }
