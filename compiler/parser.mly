@@ -13,7 +13,7 @@
 %token LPAR
 %token RPAR
 %token EOF
-%token CONS HEAD TAIL
+%token CONS HEAD TAIL NIL
 
 %right HEAD TAIL
 %right CONS
@@ -70,6 +70,7 @@ expr:
   | LET; d = defns; IN; e = expr             { Let(d, e)               }
   | LETREC; d = defns; IN; e = expr          { Letrec(d, e)            }
   | CASE; e = expr; OF; a = alts; END        { Case(e, a)              }
+  | NIL                                      { Pack(1, 0)              }
 ;
 
 aexpr:
