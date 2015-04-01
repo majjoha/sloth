@@ -1,4 +1,4 @@
-main = head (tailn (sieve (from 2)) 99);
+main = (take 5 (sieve (from 2)));
 
 head xs =
    case xs of

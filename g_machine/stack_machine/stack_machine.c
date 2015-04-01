@@ -49,7 +49,7 @@ word* allocate(unsigned int tag, unsigned int length) {
 
 void execute_instructions(int* program, word** stack, dump_item* dump) {
   int sp = -1;
-  int pc = 1;
+  int pc = 3;
   int dp = -1;
 
   for (;;) {
@@ -93,13 +93,6 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
       case UNWIND: {
         switch (GetTag(*stack[sp])) {
           case INTEGER_NODE: {
-            if (dp == 0) {
-              word* integer_node = stack[sp];
-              list_node* visited_nodes = NULL;
-              print_node(integer_node, 0, visited_nodes);
-              return;
-            }
-
             pc = GetPc(dump[dp--]);
             break;
           }  
@@ -145,12 +138,6 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
               sp = sp-n;
               // TODO: Garbage collection må ikke ske her
               stack[sp] = pack_node;
-            }
-
-            if (dp == 0) {
-              list_node* visited_nodes = NULL;
-              print_node(pack_node, 0, visited_nodes);
-              return;
             }
 
             pc = GetPc(dump[dp--]);
@@ -227,8 +214,6 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
           new_sd = sp - new_bp;
         }
 
-        printf("Making Dump Item\n");
-        printf("PC: %d, SD: %d, BP: %d\n", pc, new_sd, new_bp);
         dump_item di = make_dump_item(pc, new_sd, new_bp);
         dump[++dp] = di;
         // go to global unwind
@@ -363,15 +348,11 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
         word* pack_node = stack[sp];
         int matched = 0;
 
-        printf("Casejumpin'\n");
+        /* printf("Casejumpin'\n"); */
 
         for (int i = 0; i < n*2; i = i+2) {
           int tag = program[pc+i];
           int lab = program[pc+i+1];
-
-          printf("TAG: %d\n", tag);
-          printf("LAB: %d\n", lab);
-          printf("pack_node: %d\n", pack_node[1]);
 
           if (tag == pack_node[1]) {
             pc = lab;
@@ -384,6 +365,43 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
           printf("Illegal casejump. No matching tag.\n");
           exit(EXIT_FAILURE);
         }
+        break;
+      }
+      case PRINT: {
+        word* node = stack[sp];
+
+        switch (GetTag(*node)) {
+          case INTEGER_NODE: {
+            printf("%d\n", node[1]);
+
+            if (sp == 0) {
+              return;
+            }
+
+            sp--;
+            pc = 1;
+            break;
+          }
+          case PACK_NODE: {
+            int n = node[2];
+
+            if (n == 0) return;
+
+            for (int i = n+2; i >= 3; i--)
+            {
+              stack[sp++] = (word*)node[i];
+            }
+
+            sp--;
+            pc = 1;
+            break;
+          }
+          default: {
+            printf("Illegal print on tag %d\n", GetTag(*node));
+            exit(EXIT_FAILURE);
+          }
+        }
+
         break;
       }
       default:

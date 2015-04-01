@@ -2,7 +2,7 @@
 #define STACK_MACHINE_H
 
 #define STACK_SIZE 1000
-#define HEAP_SIZE  1000
+#define HEAP_SIZE  10000
 #define DUMP_SIZE  100
 #define LAST_INSTRUCTION -1
 
@@ -33,6 +33,7 @@
 #define PACK       24
 #define SPLIT      25
 #define CASEJUMP   26
+#define PRINT      27
 
 #define APP_NODE     0
 #define INTEGER_NODE 1

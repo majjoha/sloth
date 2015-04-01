@@ -26,3 +26,4 @@ type instruction =
   | Pack of int * int
   | Split of int
   | Casejump of (int * string) list
+  | Print
