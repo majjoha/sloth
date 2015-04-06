@@ -1,2 +1,2 @@
 #!/usr/bin/env sh
-rlwrap ocaml absyn.cmo parser.cmo lexer.cmo instructions.cmo compiler.cmo codegen.cmo slothc.cmo 
+rlwrap ocaml ../../shared/environment.cmo ../../shared/utils.cmo ../../shared/syntax/absyn.cmo ../../shared/syntax/parser.cmo ../../shared/syntax/lexer.cmo instructions.cmo compiler.cmo codegen.cmo slothc.cmo 

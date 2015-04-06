@@ -1,5 +1,6 @@
 open Compiler
 open Instructions
+open Environment
 
 let incrementInstructionCount (count:int) (instr:instruction) : int = 
     match instr with

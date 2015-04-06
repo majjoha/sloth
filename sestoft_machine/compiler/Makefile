@@ -14,9 +14,8 @@ main:
 	ocamlc -c -I ${syntax} ${shared}/syntax/lexer.ml
 	ocamlc -c instructions.ml
 	ocamlc -c -I ${shared} -I ${syntax} compiler.ml
-	ocamlc -c -I ${shared} -I ${syntax} codegen.ml
 	ocamlc -c -I ${syntax} slothc.ml
-	ocamlc -I ${shared} -I ${syntax} utils.cmo environment.cmo absyn.cmo parser.cmo lexer.cmo instructions.cmo compiler.cmo codegen.cmo slothc.cmo -o slothc
+	ocamlc -I ${shared} -I ${syntax} utils.cmo environment.cmo absyn.cmo parser.cmo lexer.cmo instructions.cmo compiler.cmo slothc.cmo -o slothc
 
 clean:
 	rm ${shared}/environment.cmi ${shared}/environment.cmo ${shared}/utils.cmi ${shared}/utils.cmo
@@ -24,8 +23,6 @@ clean:
 	rm ${shared}/syntax/parser.automaton ${shared}/syntax/parser.cmi ${shared}/syntax/parser.cmo \
 	 ${shared}/syntax/parser.mli ${shared}/syntax/parser.ml ${shared}/syntax/parser.conflicts
 	rm ${shared}/syntax/absyn.cmi ${shared}/syntax/absyn.cmo
-	rm slothc.cmi slothc.cmo
 	rm instructions.cmi instructions.cmo
 	rm compiler.cmi compiler.cmo
-	rm codegen.cmi codegen.cmo
-	rm slothc
+	rm slothc.cmi slothc.cmo slothc

@@ -1,12 +1,10 @@
 open Instructions
 open Absyn
 open Printf
-
-type env = (string * int) list;;
+open Environment
+open Utils
 
 type compiledSc = (string * int * instruction list);;
-
-let failwith msg = raise (Failure msg);;
 
 let nextlab = ref 2;;
 
@@ -28,26 +26,6 @@ let compPrim =
     ("if",  3, [Push 0; Eval; Jfalse "L1"; Push 1; Jump "L2"; Label "L1";
                Push 2; Label "L2"; Eval; Update 3; Pop 3; Unwind])
   ]
-;;
-
-let rec inEnv (env:env) (var:string) =
-  match env with
-  | [] -> false
-  | (x1,x2)::xs -> if x1 = var then true else inEnv xs var
-;;
-
-let printEnv (env:env) =
-  List.iter (fun (s, i) -> fprintf stdout ("Name: %s, Index: %d\n") s i) env
-;;
-
-let rec lookup (env:env) (var:string) =
-  match env with
-  | [] -> failwith "Variable was not in environment."
-  | (x1,x2)::xs -> if x1 = var then x2 else lookup xs var
-;;
-
-let argOffset (env:env) (n:int) =
-  List.map (fun (v,m) -> (v,m+n)) env
 ;;
 
 let rec compA (alt:alt) (label:string) (endLabel:string) (env:env) =
