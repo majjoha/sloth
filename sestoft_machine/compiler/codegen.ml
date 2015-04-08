@@ -18,7 +18,7 @@ let instructionToCode (instruction:instruction) (labelEnv:env) : int list =
   | Take -> [0]
   | Enter n -> [1; n]
   | Push n -> [2; n]
-  | Sep -> [3]
+  | Sep -> [-3]
   | Let i -> [4; i]
   | Enterglobal s -> [5; (lookup labelEnv s)]
   | Pushglobal s -> [6; (lookup labelEnv s)]
