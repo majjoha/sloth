@@ -5,7 +5,7 @@ word make_header(unsigned int tag, unsigned int length, unsigned int color) {
   return (tag << 24) | (length << 2) | color;
 }
 
-word* allocate_word(unsigned int tag, unsigned int length, word** lastFreeHeapNode) {
+word* allocate_block(unsigned int tag, unsigned int length, word** lastFreeHeapNode) {
   **lastFreeHeapNode = make_header(tag, length, Blue);
   word* heapNode = *lastFreeHeapNode;
   *lastFreeHeapNode = *lastFreeHeapNode + length + 1;

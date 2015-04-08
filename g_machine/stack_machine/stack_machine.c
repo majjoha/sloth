@@ -32,7 +32,7 @@ int unbox_integer(word* word) {
 }
 
 word* allocate(unsigned int tag, unsigned int length) {
-  return allocate_word(tag, length, &lastFreeHeapNode);
+  return allocate_block(tag, length, &lastFreeHeapNode);
 }
 
 void execute_instructions(int* program, word** stack, dump_item* dump) {
