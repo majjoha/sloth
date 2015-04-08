@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "utils.h"
+#include "debug.h"
 #include "stack_machine.h"
+#include "../../shared/mm/memory.h"
 
 /*
 
@@ -22,10 +23,6 @@ word* afterHeap;
 word* lastFreeHeapNode;
 int verbose = 0;
 
-word make_header(unsigned int tag, unsigned int length, unsigned int color) { 
-  return (tag << 24) | (length << 2) | color;
-}
-
 dump_item make_dump_item(unsigned int pc, unsigned int sd, unsigned int bp) {
   return (pc << 22) | (sd << 11) | bp;
 }
@@ -34,17 +31,8 @@ int unbox_integer(word* word) {
   return word[1];
 }
 
-void init_heap() {
-  heap = (word*)malloc(sizeof(word)*HEAP_SIZE);
-  afterHeap = &heap[HEAP_SIZE];
-  lastFreeHeapNode = &heap[0];
-}
-
 word* allocate(unsigned int tag, unsigned int length) {
-  *lastFreeHeapNode = make_header(tag, length, Blue);
-  word* heapNode = lastFreeHeapNode;
-  lastFreeHeapNode = lastFreeHeapNode + length + 1;
-  return heapNode;
+  return allocate_word(tag, length, &lastFreeHeapNode);
 }
 
 void execute_instructions(int* program, word** stack, dump_item* dump) {
@@ -415,7 +403,7 @@ int execute(char* filename) {
   int* program = read_file(filename);
   word** stack = (word**)malloc(sizeof(word*) * STACK_SIZE);
   dump_item* dump = (dump_item*)malloc(sizeof(dump_item) * DUMP_SIZE);
-  init_heap();
+  init_heap(&heap, &afterHeap, &lastFreeHeapNode, HEAP_SIZE);
 
   execute_instructions(program, stack, dump);
 

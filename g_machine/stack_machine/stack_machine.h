@@ -42,11 +42,6 @@
 #define NULL_NODE 4
 #define PACK_NODE 5
 
-#define White 0
-#define Grey  1
-#define Black 2
-#define Blue  3
-
 #define GetTag(h) (h>>24)
 #define GtoAIndex(i) sp-(i)
 #define GetPc(di) ((di)>>22)
@@ -54,7 +49,6 @@
 #define GetBp(di) ((di)&0x7ff)
 #define GetCurrentBp() GetBp(dump[dp])
 
-typedef unsigned int word;
 typedef unsigned int dump_item;
 
 #endif
