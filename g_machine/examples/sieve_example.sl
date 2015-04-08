@@ -18,8 +18,6 @@ tailn xs n =
   2 x rest -> if (n = 1) rest (tailn rest (n-1))
   end;
 
-nil = pack(1,0);
-
 strict xs = 
   case xs of
   1 -> pack(1,0);
