@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "debug.h"
 
 extern word* heap;
 
@@ -174,23 +174,4 @@ void print_stack(int sp, word** stack) {
     word* node = stack[i];
     print_node(node, 0, visited_nodes);
   }
-}
-
-int* read_file(char* filename) {
-  int* program = (int*)malloc(sizeof(int)*1000);
-  FILE *source = fopen(filename, "r");
-  int i = 0;
-  int num;
-
-  while (fscanf(source, "%d", &num) == 1) {
-    program[i] = num;
-    i++;
-  }
-
-  // Insert -1 at the end of array to determine where to stop.
-  program[i] = -1;
-
-  fclose(source);
-
-  return program;
 }
