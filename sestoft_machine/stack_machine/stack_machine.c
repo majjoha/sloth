@@ -4,6 +4,8 @@
 #include "../../shared/read_file.h"
 #include "../../shared/mm/memory.h"
 
+typedef unsigned char small_bool;
+
 word* heap;
 word* afterHeap;
 word* lastFreeHeapNode;
@@ -12,7 +14,7 @@ word* allocate(unsigned int tag, unsigned int length) {
   return allocate_block(tag, length, &lastFreeHeapNode);
 }
 
-void execute_instructions(int* program, word** stack, word** env) {
+void execute_instructions(int* program, word** stack, word** env, small_bool* update_markers) {
   int sp = -1;
   int pc = 0;
   int ep = -1;
@@ -25,17 +27,30 @@ void execute_instructions(int* program, word** stack, word** env) {
           return;
         }
 
-        word* node = stack[sp--];
-        env[++ep] = node;
-        break;
+        if (update_markers[sp])
+        {
+          // var 2 rule
+          word* node = stack[sp--];
+
+        }
+        else
+        {
+          // app 2 rule
+          word* node = stack[sp--];
+          env[++ep] = node;
+          break;
+        }
       }
       case ENTER: {
+        int u = program[pc++];
+        word* node = env[DBToAIndex(u)];
         break;
       }
       case PUSH: {
         int u = program[pc++];
         word* node = env[DBToAIndex(u)];
         stack[++sp] = node;
+        update_markers[sp] = FALSE;
         break;
       }
       case SEP: {
@@ -105,10 +120,11 @@ void execute_instructions(int* program, word** stack, word** env) {
 int execute(char* filename) {
   int* program = read_file(filename);
   word** stack = (word**)malloc(sizeof(word*) * STACK_SIZE);
+  small_bool* update_markers = malloc(sizeof(small_bool*) * STACK_SIZE);
   word** env = (word**)malloc(sizeof(word*) * ENV_SIZE);
   init_heap(&heap, &afterHeap, &lastFreeHeapNode, HEAP_SIZE);
 
-  execute_instructions(program, stack, env);
+  execute_instructions(program, stack, env, update_markers);
 
   return 0;
 }

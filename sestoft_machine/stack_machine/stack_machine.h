@@ -1,6 +1,9 @@
 #ifndef STACK_MACHINE_H
 #define STACK_MACHINE_H
 
+#define TRUE  1
+#define FALSE 0
+
 #define STACK_SIZE 1000
 #define HEAP_SIZE  10000
 #define ENV_SIZE   1000
