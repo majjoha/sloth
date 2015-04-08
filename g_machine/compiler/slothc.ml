@@ -36,7 +36,7 @@ let () =
     match (Array.length Sys.argv) with
     | 2 -> let filename = Sys.argv.(1) in
            Printf.fprintf stdout "Filename: %s\n" filename;
-           let outname = (Filename.chop_extension (Sys.argv.(1)) ^ ".slo") in
+           let outname = (Filename.chop_extension (Sys.argv.(1)) ^ ".slg") in
            sourceToSlo filename outname
     | 3 -> let filename = Sys.argv.(1) in
            let outname = Sys.argv.(2) in
