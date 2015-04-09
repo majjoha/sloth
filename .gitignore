@@ -37,4 +37,6 @@
 
 # Sloth
 *.slo
+*.slg
+*.sls
 slothc
