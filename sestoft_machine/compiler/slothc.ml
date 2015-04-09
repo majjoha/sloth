@@ -3,6 +3,7 @@ open Lexer
 open Absyn
 open Instructions
 open Compiler
+open Codegen
 
 let from_string s = Parser.prog Lexer.token (Lexing.from_string s)
 
@@ -23,6 +24,11 @@ let readFile (file:string) =
   really_input ic s 0 n;
   close_in ic;
   (s)
+;;
+
+let sourceToSlo (filename:string) (outfile:string) =
+  toFile (codeGeneration (compile (readFile filename))) outfile;
+  Printf.fprintf stdout "Succesfully compiled %s to %s.\n" filename outfile
 ;;
 
 let () =
