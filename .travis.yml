@@ -1,0 +1,5 @@
+language: c
+sudo: true
+script: bash  -ex travis-ci.sh
+notifications:
+  email: false
