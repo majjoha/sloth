@@ -10,6 +10,5 @@ main:
 		stack_machine.c
 
 clean:
-	rm stack_machine
-	rm *.o
+	rm -f stack_machine
 	rm -rf *.dSYM

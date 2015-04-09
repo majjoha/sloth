@@ -21,12 +21,12 @@ main:
 		slothc.cmo -o slothc
 
 clean:
-	rm ${shared}/environment.cmi ${shared}/environment.cmo ${shared}/utils.cmi ${shared}/utils.cmo
-	rm ${shared}/syntax/lexer.cmi ${shared}/syntax/lexer.cmo ${shared}/syntax/lexer.ml
-	rm ${shared}/syntax/parser.automaton ${shared}/syntax/parser.cmi ${shared}/syntax/parser.cmo \
+	rm -f ${shared}/environment.cmi ${shared}/environment.cmo ${shared}/utils.cmi ${shared}/utils.cmo
+	rm -f ${shared}/syntax/lexer.cmi ${shared}/syntax/lexer.cmo ${shared}/syntax/lexer.ml
+	rm -f ${shared}/syntax/parser.automaton ${shared}/syntax/parser.cmi ${shared}/syntax/parser.cmo \
 	 ${shared}/syntax/parser.mli ${shared}/syntax/parser.ml ${shared}/syntax/parser.conflicts
-	rm ${shared}/syntax/absyn.cmi ${shared}/syntax/absyn.cmo
-	rm instructions.cmi instructions.cmo
-	rm codegen.cmi codegen.cmo
-	rm compiler.cmi compiler.cmo
-	rm slothc.cmi slothc.cmo slothc
+	rm -f ${shared}/syntax/absyn.cmi ${shared}/syntax/absyn.cmo
+	rm -f instructions.cmi instructions.cmo
+	rm -f codegen.cmi codegen.cmo
+	rm -f compiler.cmi compiler.cmo
+	rm -f slothc.cmi slothc.cmo slothc

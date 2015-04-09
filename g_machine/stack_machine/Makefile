@@ -12,6 +12,6 @@ main:
 		linked_list.o ${mm}/memory.o stack_machine.c
 
 clean:
-	rm stack_machine
-	rm *.o
-	rm -rf *.dSYM
+	rm -f stack_machine
+	rm -f *.o
+	rm -f -rf *.dSYM
