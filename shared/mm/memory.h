@@ -6,6 +6,9 @@
 #define Black 2
 #define Blue  3
 
+#define GetTag(h)    ((h)>>24)
+#define GetLength(h) (((h)>>2)&0x3fffff)
+
 typedef unsigned int word;
 
 word make_header(unsigned int tag, unsigned int length, unsigned int color);

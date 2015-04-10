@@ -14,6 +14,13 @@ word* allocate(unsigned int tag, unsigned int length) {
   return allocate_block(tag, length, &lastFreeHeapNode);
 }
 
+void copy_env(word** env, int ep, word* clos_node)
+{
+  for (int j = 0; j < ep+1; j++) {
+    clos_node[j+2] = (word) env[j];
+  }
+}
+
 void execute_instructions(int* program, word** stack, word** env, small_bool* update_markers) {
   int sp = -1;
   int pc = 0;
@@ -27,23 +34,47 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
           return;
         }
 
-        if (update_markers[sp])
+        word* node = stack[sp--];
+
+        if (update_markers[sp+1])
         {
           // var 2 rule
-          word* node = stack[sp--];
 
+          // copy current env to closure
+          copy_env(env, ep, node);
+
+          // make nodes pc pointer point to current TAKE instruction
+          node[1] = --pc;
         }
         else
         {
           // app 2 rule
-          word* node = stack[sp--];
           env[++ep] = node;
-          break;
         }
+
+        break;
       }
       case ENTER: {
+        // var 1 rule
         int u = program[pc++];
         word* node = env[DBToAIndex(u)];
+
+        // jump to code for closure
+        pc = node[1];
+
+        // copy closure env to global env
+        int env_length = GetLength(node[0]) - 1;
+        for (int i = 0; i < env_length; i++)
+        {
+          env[i] = (word*) node[i+2];
+        }
+
+        // set ep to the size of the closure env
+        ep = env_length - 1;
+
+        // push update marker to stack
+        stack[++sp] = node;
+        update_markers[sp] = TRUE;
         break;
       }
       case PUSH: {
@@ -58,23 +89,14 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
       }
       case LET: {
         int n = program[pc++];
-        int** instructions = malloc(sizeof(int**)*n);
-        int* length = malloc(sizeof(int*)*n);
-        int initial_pc;
+        int* pc_pointers = malloc(sizeof(int)*n);
 
         for (int i = 0; i < n; i++) {
-          initial_pc = pc;
+          pc_pointers[i] = pc;
 
           // We iterate over instructions until we meet the SEP instruction
           // in order to find the number of instructions for the binding.
           while (program[pc++] != SEP);
-          length[i] = pc - initial_pc;
-          instructions[i] = malloc(sizeof(int*)*length[i]);
-
-          // Initialize the array with all the instructions for the binding.
-          for (int j = 0; j < length[i]; j++) {
-            instructions[i][j] = program[initial_pc+j];
-          }
 
           // Step over the SEP instruction
           pc++;
@@ -86,31 +108,21 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         }
 
         for (int i = 0; i < n; i++) {
-          // length[i] = Number of instructions
           // ep + 1 = Size of environment
-          // 1 = One word for saving the size of the environment
-          int l = length[i] + ep + 1 + 1;
+          // 1 = One word for saving the PC pointer
+          int l = ep + 1 + 1;
           word* clos_node = allocate(CLOS_NODE, l);
-          clos_node[1] = ep + 1;
 
-          for (int j = 0; j < ep+1; j++) {
-            clos_node[j+2] = (word) env[j];
-          }
+          // Save PC pointer in first word
+          clos_node[1] = pc_pointers[i];
 
-          for (int k = 0; k < length[i]; k++) {
-            clos_node[k+ep+3] = instructions[i][k];
-          }
+          // Copy env to closure
+          copy_env(env, ep, clos_node);
 
           word* ind_node = env[ep-(n-i)+1];
           ind_node[1] = (word) clos_node;
         }
 
-        break;
-      }
-      case ENTERGLOBAL: {
-        break;
-      }
-      case PUSHGLOBAL: {
         break;
       }
     }
