@@ -21,12 +21,50 @@ void copy_env(word** env, int ep, word* clos_node)
   }
 }
 
+void initialize_scs(int* program, word** env, int* ep, int* pc)
+{
+  int scs_count = program[(*pc)++];
+
+  int* pc_pointers = malloc(sizeof(int)*scs_count);
+
+  for (int i = 0; i < scs_count; i++) {
+    pc_pointers[i] = program[(*pc)++];
+    printf("PC: %d\n", (*pc));
+
+    word* ind_node = allocate(IND_NODE, 1);
+    word* null_node = allocate(NULL_NODE, 0);
+    ind_node[1] = (word) null_node;
+    env[++(*ep)] = ind_node;
+  }
+
+  for (int i = 0; i < scs_count; i++) {
+    // ep + 1 = Size of environment
+    // 1 = One word for saving the PC pointer
+    int l = *ep + 1 + 1;
+    word* clos_node = allocate(CLOS_NODE, l);
+
+    // Save PC pointer in first word
+    clos_node[1] = pc_pointers[i];
+
+    // Copy env to closure
+    copy_env(env, *ep, clos_node);
+
+    word* ind_node = env[(*ep)-(scs_count-i)+1];
+    ind_node[1] = (word) clos_node;
+  }
+
+  free(pc_pointers);
+}
+
 void execute_instructions(int* program, word** stack, word** env, small_bool* update_markers) {
   int sp = -1;
-  int pc = 0;
   int ep = -1;
+  int pc = 0;
+  initialize_scs(program, env, &ep, &pc);
+  printf("PC after SCs init: %d\n", pc);
 
   for (;;) {
+    printf("PC before switch: %d\n", pc);
     switch(program[pc++]) {
       case TAKE: {
         if (sp == -1) {
@@ -60,20 +98,22 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         word* node = env[DBToAIndex(u)];
 
         // jump to code for closure
-        pc = node[1];
+        // TODO: Are we sure that node is always IND_NODE pointing to a CLOS_NODE?
+        word* clos_node = (word*) node[1];
+        pc = clos_node[1];
 
         // copy closure env to global env
-        int env_length = GetLength(node[0]) - 1;
+        int env_length = GetLength(clos_node[0]) - 1;
         for (int i = 0; i < env_length; i++)
         {
-          env[i] = (word*) node[i+2];
+          env[i] = (word*) clos_node[i+2];
         }
 
         // set ep to the size of the closure env
         ep = env_length - 1;
 
         // push update marker to stack
-        stack[++sp] = node;
+        stack[++sp] = clos_node;
         update_markers[sp] = TRUE;
         break;
       }
@@ -122,6 +162,8 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
           word* ind_node = env[ep-(n-i)+1];
           ind_node[1] = (word) clos_node;
         }
+
+        free(pc_pointers);
 
         break;
       }

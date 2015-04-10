@@ -24,6 +24,9 @@ let instructionToCode (instruction:instruction) (labelEnv:env) : int list =
   | Pushglobal s -> [6; (lookup labelEnv s)]
 ;;
 
+(*
+instructionCount: offset from beginning of program array to first supercombinator
+*)
 let rec generateScEnv (compiledScs:compiledSc list) (instructionCount:int) : env =
   match compiledScs with
   | [] -> []
@@ -40,7 +43,13 @@ let rec codeGenerationHelper (compiledScs:compiledSc list) (scEnv:env) =
       codeGenerationHelper rest scEnv
 ;;
 
+let getMainDeBruijn (compiledScs:compiledSc list) : int =
+  lookup (List.mapi (fun i (name, _, _) -> (name, i)) compiledScs) "main"
+;;
+
 let codeGeneration (compiledScs:compiledSc list) : int list =
-  let env = generateScEnv compiledScs 2 in
-  (instructionToCode (Enterglobal "main")) env @ codeGenerationHelper compiledScs env
+  let scsCount = List.length compiledScs in
+  let env = generateScEnv compiledScs (scsCount+3) in
+  scsCount :: (List.rev (List.map (fun (s, i) -> i) env)) @
+  (instructionToCode (Enter (getMainDeBruijn compiledScs))) env @ codeGenerationHelper compiledScs env
 ;;
