@@ -42,7 +42,6 @@
 #define NULL_NODE 4
 #define PACK_NODE 5
 
-#define GetTag(h) (h>>24)
 #define GtoAIndex(i) sp-(i)
 #define GetPc(di) ((di)>>22)
 #define GetSd(di) (((di)>>11)&0x7ff)
