@@ -75,12 +75,10 @@ let rec compSc (sc:scdefn) : compiledSc =
         compR body (List.mapi (fun i a -> (a, i)) args))
 ;;
 
-let rec compProg (prog:program) =
-  match prog with
-  | [] -> []
-  | x::xs -> compSc x :: compProg xs
-;;
-
-let compProgAndStdlib (prog:program) =
-  compPrim @ compProg prog
+let compProg (prog:program) =
+  let rec compP (prog:program) =
+    match prog with
+    | [] -> []
+    | x::xs -> compSc x :: compP xs in
+  compPrim @ compP prog
 ;;

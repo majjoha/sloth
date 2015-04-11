@@ -2,6 +2,9 @@ open Compiler
 open Instructions
 open Environment
 
+let ext = ".slg"
+;;
+
 let incrementInstructionCount (count:int) (instr:instruction) : int = 
     match instr with
     | Pushglobal _   -> count+2

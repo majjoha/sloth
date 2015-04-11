@@ -2,6 +2,9 @@ open Compiler
 open Instructions
 open Environment
 
+let ext = ".sls"
+;;
+
 let incrementInstructionCount (count:int) (instr:instruction) : int =
   match instr with
   | Take          -> count+1
