@@ -1,0 +1,1 @@
+int address_to_heap_index(word* node, word* heap);

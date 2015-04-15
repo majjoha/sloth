@@ -1,4 +1,5 @@
 #include "debug.h"
+#include "../../shared/utils.h"
 
 extern word* heap;
 
@@ -54,13 +55,9 @@ char* tag_to_name(int tag) {
   }
 }
 
-int address_to_heap_index(word* node) {
-  return node - heap;
-}
-
 void print_node(word* node, int tab_factor, list_node* visited_nodes) {
   int tag = GetTag(*node);
-  int heap_index = address_to_heap_index(node);
+  int heap_index = address_to_heap_index(node, heap);
   printf("(%d) %s: ", heap_index, tag_to_name(tag));
 
   if (visited_nodes == NULL)

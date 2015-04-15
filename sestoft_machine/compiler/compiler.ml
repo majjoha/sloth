@@ -18,9 +18,9 @@ and compC (expr:expr) (env:env) : instruction list =
   match expr with
   | App(e1, e2) -> 
     (match e2 with
-    | Var s -> Push (lookup env s) :: compC e2 env
+    | Var s -> Push (lookup env s) :: compC e1 env
     | _     -> failwith "Function applied to non-variable expression")
-  | Var s -> [Enter (lookup env s)]
+  | Var s -> Printf.fprintf stdout "%s\n" s; [Enter (lookup env s)]
   | Letrec (defns, body) | Let (defns, body) -> 
     let n = List.length defns in
     let newEnv = (List.mapi (fun i (s, e) -> (s, i)) (List.rev defns)) @ argOffset env n in
@@ -29,6 +29,7 @@ and compC (expr:expr) (env:env) : instruction list =
 
 and compSc (sc:scdefn) (env:env) : instruction list =
   let (name, args, body) = sc in
+  Printf.fprintf stdout "SC: %s\n" name;
   let compBody = compC body ((List.mapi (fun i a -> (a, i)) args) @ (argOffset env (List.length args))) in
   if (List.length args) > 0 then Take :: compBody else compBody
 

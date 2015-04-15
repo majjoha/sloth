@@ -3,6 +3,7 @@
 #include "stack_machine.h"
 #include "../../shared/read_file.h"
 #include "../../shared/mm/memory.h"
+#include "../../shared/utils.h"
 
 typedef unsigned char small_bool;
 
@@ -11,13 +12,17 @@ word* afterHeap;
 word* lastFreeHeapNode;
 
 word* allocate(unsigned int tag, unsigned int length) {
-  return allocate_block(tag, length, &lastFreeHeapNode);
+  word* heap_address = allocate_block(tag, length, &lastFreeHeapNode);
+  printf("Heap address: %d\n", address_to_heap_index(heap_address, heap));
+  return heap_address;
 }
 
 void copy_env(word** env, int ep, word* clos_node)
 {
+  clos_node[2] = ep+1;
+
   for (int j = 0; j < ep+1; j++) {
-    clos_node[j+2] = (word) env[j];
+    clos_node[j+3] = (word) env[j];
   }
 }
 
@@ -25,12 +30,7 @@ void initialize_scs(int* program, word** env, int* ep, int* pc)
 {
   int scs_count = program[(*pc)++];
 
-  int* pc_pointers = malloc(sizeof(int)*scs_count);
-
   for (int i = 0; i < scs_count; i++) {
-    pc_pointers[i] = program[(*pc)++];
-    printf("PC: %d\n", (*pc));
-
     word* ind_node = allocate(IND_NODE, 1);
     word* null_node = allocate(NULL_NODE, 0);
     ind_node[1] = (word) null_node;
@@ -39,12 +39,12 @@ void initialize_scs(int* program, word** env, int* ep, int* pc)
 
   for (int i = 0; i < scs_count; i++) {
     // ep + 1 = Size of environment
-    // 1 = One word for saving the PC pointer
-    int l = *ep + 1 + 1;
+    // 1 = One word for saving the PC pointer and one word for saving env length
+    int l = *ep + 1 + 2;
     word* clos_node = allocate(CLOS_NODE, l);
 
     // Save PC pointer in first word
-    clos_node[1] = pc_pointers[i];
+    clos_node[1] = program[(*pc)++];
 
     // Copy env to closure
     copy_env(env, *ep, clos_node);
@@ -52,8 +52,6 @@ void initialize_scs(int* program, word** env, int* ep, int* pc)
     word* ind_node = env[(*ep)-(scs_count-i)+1];
     ind_node[1] = (word) clos_node;
   }
-
-  free(pc_pointers);
 }
 
 void execute_instructions(int* program, word** stack, word** env, small_bool* update_markers) {
@@ -65,6 +63,8 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
 
   for (;;) {
     printf("PC before switch: %d\n", pc);
+    if (ep > 990) printf("EP: %d\n", ep);
+    printf("SP: %d\n", sp);
     switch(program[pc++]) {
       case TAKE: {
         if (sp == -1) {
@@ -74,10 +74,12 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
 
         word* node = stack[sp--];
 
+        printf("Update marker: %d\n", update_markers[sp+1]);
+
         if (update_markers[sp+1])
         {
           // var 2 rule
-
+          printf("Var 2 rule\n");
           // copy current env to closure
           copy_env(env, ep, node);
 
@@ -103,10 +105,10 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         pc = clos_node[1];
 
         // copy closure env to global env
-        int env_length = GetLength(clos_node[0]) - 1;
+        int env_length = clos_node[2];
         for (int i = 0; i < env_length; i++)
         {
-          env[i] = (word*) clos_node[i+2];
+          env[i] = (word*) clos_node[i+3];
         }
 
         // set ep to the size of the closure env
@@ -130,18 +132,8 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
       case LET: {
         // LET n m 1 2 3 instrs SEP m 1 2 3 instrs SEP ... n
         int n = program[pc++];
-        int* pc_pointers = malloc(sizeof(int)*n);
 
         for (int i = 0; i < n; i++) {
-          pc_pointers[i] = pc;
-
-          // We iterate over instructions until we meet the SEP instruction
-          // in order to find the number of instructions for the binding.
-          while (program[pc++] != SEP);
-
-          // Step over the SEP instruction
-          pc++;
-
           word* ind_node = allocate(IND_NODE, 1);
           word* null_node = allocate(NULL_NODE, 0);
           ind_node[1] = (word) null_node;
@@ -149,22 +141,33 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         }
 
         for (int i = 0; i < n; i++) {
+          // read in the trimmer
+          int trimmer_length = program[pc++];
+
           // ep + 1 = Size of environment
-          // 1 = One word for saving the PC pointer
-          int l = ep + 1 + 1;
+          // 2 = A word for saving the PC pointer and a word for saving the env size
+          // trimmer_length = the trimmer
+          int l = ep + 1 + 2 + trimmer_length;
           word* clos_node = allocate(CLOS_NODE, l);
 
           // Save PC pointer in first word
-          clos_node[1] = pc_pointers[i];
+          clos_node[1] = pc;
 
           // Copy env to closure
           copy_env(env, ep, clos_node);
 
+          // save trimmer in closure
+          for (int j = 0; j < trimmer_length; j++) {
+            clos_node[j+ep+4] = program[pc++];
+          }
+
           word* ind_node = env[ep-(n-i)+1];
           ind_node[1] = (word) clos_node;
-        }
 
-        free(pc_pointers);
+          // We iterate over instructions until we meet the SEP instruction
+          // in order to find the number of instructions for the binding.
+          while (program[pc++] != SEP);
+        }
 
         break;
       }
