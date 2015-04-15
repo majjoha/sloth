@@ -6,7 +6,15 @@ open Utils
 
 type compiledSc = (string * int * instruction list);;
 
-let rec compC (expr:expr) (env:env) : instruction list =
+let rec compFvs (vars:string list) (env:env) =
+  Freevars (List.map (fun s -> lookup env s) vars)
+
+and compDefns (defns:(string * expr) list) (env:env) =
+  List.fold_right (fun (s, e) acc -> (compFvs (findFreeVars e []) env) ::
+                                     (compC e env) @
+                                     (Sep :: acc)) defns []
+
+and compC (expr:expr) (env:env) : instruction list =
   match expr with
   | App(e1, e2) -> 
     (match e2 with
@@ -16,23 +24,37 @@ let rec compC (expr:expr) (env:env) : instruction list =
   | Letrec (defns, body) | Let (defns, body) -> 
     let n = List.length defns in
     let newEnv = (List.mapi (fun i (s, e) -> (s, i)) (List.rev defns)) @ argOffset env n in
-    Let n
-    :: (List.fold_right (fun (s, e) acc -> (compC e newEnv) @ (Sep :: acc)) defns []
-        @ compC body newEnv)
+    Let n :: (compDefns defns newEnv @ compC body newEnv)
   | _ -> failwith "Unsupported expression in abstract syntax tree"
-;;
 
-let rec compSc (sc:scdefn) (env:env) : instruction list =
+and compSc (sc:scdefn) (env:env) : instruction list =
   let (name, args, body) = sc in
   let compBody = compC body ((List.mapi (fun i a -> (a, i)) args) @ (argOffset env (List.length args))) in
   if (List.length args) > 0 then Take :: compBody else compBody
-;;
 
-let makeScEnv (prog:program) =
-  List.mapi (fun i (name, _, _) -> (name, i)) prog
-;;
-
-let rec compProg (prog:program) =
+and compProg (prog:program) =
   let env = makeScEnv prog in
   List.map (fun sc -> let (name, args, body) = sc in (name, List.length args, (compSc sc env))) prog
+
+and findFreeVars (expr:expr) (freeVars:string list) =
+  match expr with
+  | Var s -> s :: freeVars
+  | App (e1, e2) -> findFreeVars e1 freeVars @ findFreeVars e2 freeVars
+  | Let (defns, body) | Letrec (defns, body) ->
+      let letVars = List.flatten (List.map (fun (_, e) -> findFreeVars e freeVars) defns) @
+                    findFreeVars body freeVars in
+      removeVars (List.map (fun (v,_) -> v) defns) letVars
+  | Case (cond, alts) -> freeVars
+  | Num _ | Pack _ | Sel _ -> freeVars
+
+and removeVars (vars:string list) (freeVars:string list) =
+  match freeVars with
+  | [] -> []
+  | x::xs -> if (List.exists (fun y -> x = y) freeVars) then
+               removeVars xs freeVars
+             else
+               x :: (removeVars xs freeVars)
+
+and makeScEnv (prog:program) =
+  List.mapi (fun i (name, _, _) -> (name, i)) prog
 ;;

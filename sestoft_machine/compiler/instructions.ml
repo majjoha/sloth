@@ -6,3 +6,4 @@ type instruction =
   | Let of int
   | Enterglobal of string
   | Pushglobal of string
+  | Freevars of int list

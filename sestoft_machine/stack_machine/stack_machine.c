@@ -128,6 +128,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         break;
       }
       case LET: {
+        // LET n m 1 2 3 instrs SEP m 1 2 3 instrs SEP ... n
         int n = program[pc++];
         int* pc_pointers = malloc(sizeof(int)*n);
 

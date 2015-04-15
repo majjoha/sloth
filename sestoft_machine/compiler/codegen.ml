@@ -14,6 +14,7 @@ let incrementInstructionCount (count:int) (instr:instruction) : int =
   | Let _         -> count+2
   | Enterglobal _ -> count+2
   | Pushglobal _  -> count+2
+  | Freevars s    -> count+(List.length s)+1
 ;;
 
 let instructionToCode (instruction:instruction) (labelEnv:env) : int list =
@@ -25,6 +26,7 @@ let instructionToCode (instruction:instruction) (labelEnv:env) : int list =
   | Let i -> [4; i]
   | Enterglobal s -> [5; (lookup labelEnv s)]
   | Pushglobal s -> [6; (lookup labelEnv s)]
+  | Freevars s -> List.length s :: s
 ;;
 
 (*
