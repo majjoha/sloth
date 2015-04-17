@@ -13,12 +13,13 @@ main:
 	ocamlc -c -I ${syntax} ${shared}/syntax/parser.ml
 	ocamlc -c -I ${syntax} ${shared}/syntax/lexer.ml
 	ocamlc -c instructions.ml
-	ocamlc -c -I ${shared} -I ${syntax} compiler.ml
+	ocamlc -c -I ${syntax} preprocessor.ml
+	ocamlc -c -I ${shared} -I ${syntax} -I preprocessor.ml compiler.ml
 	ocamlc -c -I ${shared} codegen.ml
 	ocamlc -c -I ${syntax} ${shared}/slothc.ml
 	ocamlc -I ${shared} -I ${syntax} utils.cmo environment.cmo absyn.cmo \
-		parser.cmo lexer.cmo instructions.cmo compiler.cmo codegen.cmo \
-		slothc.cmo -o slothc
+		parser.cmo lexer.cmo instructions.cmo preprocessor.cmo compiler.cmo \
+		codegen.cmo slothc.cmo -o slothc
 
 clean:
 	rm -f ${shared}/environment.cmi ${shared}/environment.cmo ${shared}/utils.cmi ${shared}/utils.cmo

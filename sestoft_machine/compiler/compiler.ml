@@ -3,6 +3,7 @@ open Absyn
 open Printf
 open Environment
 open Utils
+open Preprocessor
 
 type compiledSc = (string * int * instruction list);;
 
@@ -30,7 +31,8 @@ and compC (expr:expr) (env:env) : instruction list =
 and compSc (sc:scdefn) (env:env) : instruction list =
   let (name, args, body) = sc in
   Printf.fprintf stdout "SC: %s\n" name;
-  let compBody = compC body ((List.mapi (fun i a -> (a, i)) args) @ (argOffset env (List.length args))) in
+  let transformedBody = preprocessAppToLet body in
+  let compBody = compC transformedBody ((List.mapi (fun i a -> (a, i)) args) @ (argOffset env (List.length args))) in
   if (List.length args) > 0 then Take :: compBody else compBody
 
 and compProg (prog:program) =
