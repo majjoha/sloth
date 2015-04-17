@@ -68,7 +68,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
     switch(program[pc++]) {
       case TAKE: {
         if (sp == -1) {
-          printf("Reached the end of the program with pc %d\n", pc);
+          printf("Reached the end of the program with pc %d\n", pc-1);
           return;
         }
 

@@ -32,8 +32,9 @@ and compSc (sc:scdefn) (env:env) : instruction list =
   let (name, args, body) = sc in
   Printf.fprintf stdout "SC: %s\n" name;
   let transformedBody = preprocessAppToLet body in
-  let compBody = compC transformedBody ((List.mapi (fun i a -> (a, i)) args) @ (argOffset env (List.length args))) in
-  if (List.length args) > 0 then Take :: compBody else compBody
+  let compBody = compC transformedBody ((List.mapi (fun i a -> (a, i)) (List.rev args)) @ (argOffset env (List.length args))) in
+  let args_count = List.length args in
+  (repeat Take args_count) @ compBody
 
 and compProg (prog:program) =
   let env = makeScEnv prog in
@@ -60,4 +61,9 @@ and removeVars (vars:string list) (freeVars:string list) =
 
 and makeScEnv (prog:program) =
   List.mapi (fun i (name, _, _) -> (name, i)) prog
+
+and repeat thing n = 
+  if n = 0 
+  then [] 
+  else thing :: repeat thing (n-1)
 ;;

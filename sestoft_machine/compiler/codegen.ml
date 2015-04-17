@@ -55,6 +55,7 @@ let getMainDeBruijn (compiledScs:compiledSc list) : int =
 let codeGeneration (compiledScs:compiledSc list) : int list =
   let scsCount = List.length compiledScs in
   let env = generateScEnv compiledScs (scsCount+3) in
+  printEnv env;
   scsCount :: (List.rev (List.map (fun (s, i) -> i) env)) @
   (instructionToCode (Enter (getMainDeBruijn compiledScs))) env @ codeGenerationHelper compiledScs env
 ;;
