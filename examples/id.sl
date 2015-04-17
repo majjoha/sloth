@@ -1,3 +1,3 @@
 id x = x;
 
-main = id id
+main = id (id id)
