@@ -18,9 +18,8 @@ about the previous stack context.
 
 */
 
-word* heap;
-word* afterHeap;
-word* lastFreeHeapNode;
+word** stack;
+int sp;
 int verbose = 0;
 
 dump_item make_dump_item(unsigned int pc, unsigned int sd, unsigned int bp) {
@@ -32,11 +31,11 @@ int unbox_integer(word* word) {
 }
 
 word* allocate(unsigned int tag, unsigned int length) {
-  return allocate_block(tag, length, &lastFreeHeapNode);
+  return allocate_block(tag, length, sp, stack);
 }
 
 void execute_instructions(int* program, word** stack, dump_item* dump) {
-  int sp = -1;
+  sp = -1;
   int pc = 3;
   int dp = -1;
 
@@ -401,9 +400,9 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
 
 int execute(char* filename) {
   int* program = read_file(filename);
-  word** stack = (word**)malloc(sizeof(word*) * STACK_SIZE);
+  stack = (word**)malloc(sizeof(word*) * STACK_SIZE);
   dump_item* dump = (dump_item*)malloc(sizeof(dump_item) * DUMP_SIZE);
-  init_heap(&heap, &afterHeap, &lastFreeHeapNode, HEAP_SIZE);
+  init_heap(HEAP_SIZE);
 
   execute_instructions(program, stack, dump);
 
