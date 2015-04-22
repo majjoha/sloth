@@ -6,7 +6,7 @@ syntax = ${shared}/syntax
 main:
 	ocamllex ${shared}/syntax/lexer.mll
 	ocamlc -c ${shared}/environment.ml
-	ocamlc -c ${shared}/utils.ml
+	ocamlc -c -I ${syntax} ${shared}/utils.ml
 	ocamlc -c ${shared}/syntax/absyn.ml
 	menhir --ocamlc "ocamlc -I ${shared}/syntax" --infer -v ${shared}/syntax/parser.mly
 	ocamlc -c -I ${syntax} ${shared}/syntax/parser.mli

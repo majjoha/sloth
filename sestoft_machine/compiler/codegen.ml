@@ -15,8 +15,8 @@ let incrementInstructionCount (count:int) (instr:instruction) : int =
   | Enterglobal _ -> count+2
   | Pushglobal _  -> count+2
   | Freevars s    -> count+(List.length s)+1
-  | Case _        -> count+1
-  | Pack _        -> count+2
+  | Case _        -> count+2
+  | Pack _        -> count+3
 ;;
 
 let instructionToCode (instruction:instruction) (labelEnv:env) : int list =

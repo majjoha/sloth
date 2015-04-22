@@ -137,7 +137,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         ep = env_length - 1;
 
         // push update marker to stack
-        stack[++sp] = clos_node;
+        stack[++sp] = node;
         update_markers[sp] = TRUE;
         break;
       }
@@ -194,18 +194,29 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         int n = program[pc++];
 
         // The PC that we have to jump to after allocating alts_node
-        int expr_pc = program[pc++];
+        int expr_pc = pc++;
 
         while (program[pc++] != SEP);
 
-        word* alts_node = allocate(ALTS_NODE, n);
+        int l = 1+n+ep+1;
+        word* alts_node = allocate(ALTS_NODE, l);
+        alts_node[1] = n;
 
-        for (int i = 1; i <= n; i++)
+        for (int i = 2; i <= n+1; i++)
         {
-          alts_node[i] = program[pc];
+          alts_node[i] = pc;
 
           while (program[pc++] != SEP);
         }
+
+        // Copy env to alts_node
+        // n+2 = the number of tags + (the header + n)
+        for (int j = n+2; j <= ep+n+2; j++) {
+          alts_node[j] = (word) env[j];
+        }
+
+        update_markers[++sp] = FALSE;
+        stack[sp] = alts_node;
 
         pc = expr_pc;
         break;
@@ -228,6 +239,9 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
 
         else
         {
+          int tag = program[pc++];
+          int arity = program[pc++];
+
           word* alts_node = stack[sp--];
 
           if (GetTag(alts_node[0]) != ALTS_NODE)
@@ -237,10 +251,18 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
             return;
           }
 
-          int tag = program[pc++];
-          int arity = program[pc++];
+          // copy alts_node env to global env
+          int env_length = GetLength(alts_node[0]) - alts_node[1] - 1;
+          int n = alts_node[1];
+          for (int i = 0; i < env_length; i++)
+          {
+            env[i] = (word*) alts_node[i+n+2];
+          }
 
-          pc = alts_node[tag];
+          // set ep to the size of the alts_node env
+          ep = env_length - 1;
+
+          pc = alts_node[tag+1];
         }
         break;
       }

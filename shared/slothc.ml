@@ -32,6 +32,7 @@ let sourceToSlo (filename:string) (outfile:string) =
 ;;
 
 let () =
+  Printf.fprintf stdout "Dette er defekt. Det koger.\n";
   try
     match (Array.length Sys.argv) with
     | 2 -> let filename = Sys.argv.(1) in

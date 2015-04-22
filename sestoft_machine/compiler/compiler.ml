@@ -37,7 +37,9 @@ and compC (expr:expr) (env:env) : instruction list =
   | Case(e, alts) -> 
     let n = List.length alts in
     Case n :: (compC e env @ [Sep] @ compAlts alts env n)
-  | _ -> failwith "Unsupported expression in abstract syntax tree"
+  | Pack(tag, arity) ->
+    (repeat Take arity) @ [Instructions.Pack (tag, arity)]
+  | _ -> failwith ("Unsupported expression in abstract syntax tree: " ^ exprToStr expr)
 
 and compSc (sc:scdefn) (env:env) : instruction list =
   let (name, args, body) = sc in
