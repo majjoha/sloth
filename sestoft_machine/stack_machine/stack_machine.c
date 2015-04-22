@@ -54,6 +54,31 @@ void initialize_scs(int* program, word** env, int* ep, int* pc)
   }
 }
 
+word* allocate_closure(ep, trimmer_length) {
+  // ep + 1 = Size of environment
+  // 2 = A word for saving the PC pointer and a word for saving the env size
+  // trimmer_length = the trimmer
+  int l = ep + 1 + 2 + trimmer_length;
+  return allocate(CLOS_NODE, l);
+}
+
+void update_indirection_node(word* ind_node, int ep, int pc, word** env)
+{
+  word* clos_node = allocate_closure(ep, ep+1);
+
+  clos_node[1] = pc;
+
+  // Copy env to closure
+  copy_env(env, ep, clos_node);
+
+  // save trimmer in closure
+  for (int j = 0; j <= ep; j++) {
+    clos_node[j+ep+4] = j;
+  }
+
+  ind_node[1] = (word) clos_node;
+}
+
 void execute_instructions(int* program, word** stack, word** env, small_bool* update_markers) {
   int sp = -1;
   int ep = -1;
@@ -80,11 +105,8 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         {
           // var 2 rule
           printf("Var 2 rule\n");
-          // copy current env to closure
-          copy_env(env, ep, node);
-
-          // make nodes pc pointer point to current TAKE instruction
-          node[1] = --pc;
+          
+          update_indirection_node(node, ep, --pc, env);
         }
         else
         {
@@ -144,11 +166,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
           // read in the trimmer
           int trimmer_length = program[pc++];
 
-          // ep + 1 = Size of environment
-          // 2 = A word for saving the PC pointer and a word for saving the env size
-          // trimmer_length = the trimmer
-          int l = ep + 1 + 2 + trimmer_length;
-          word* clos_node = allocate(CLOS_NODE, l);
+          word* clos_node = allocate_closure(ep, trimmer_length);
 
           // Save PC pointer in first word
           clos_node[1] = pc;
@@ -169,6 +187,61 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
           while (program[pc++] != SEP);
         }
 
+        break;
+      }
+      case CASE:
+      {
+        int n = program[pc++];
+
+        // The PC that we have to jump to after allocating alts_node
+        int expr_pc = program[pc++];
+
+        while (program[pc++] != SEP);
+
+        word* alts_node = allocate(ALTS_NODE, n);
+
+        for (int i = 1; i <= n; i++)
+        {
+          alts_node[i] = program[pc];
+
+          while (program[pc++] != SEP);
+        }
+
+        pc = expr_pc;
+        break;
+      }
+      case PACK:
+      {
+        if (sp == -1)
+        {
+          printf("Reached the end of program with PC %d\n", pc-1);
+          //TODO: Print content of Pack
+          return;
+        }
+
+        if (update_markers[sp])
+        {
+          word* ind_node = stack[sp--];
+          
+          update_indirection_node(ind_node, ep, --pc, env);
+        }
+
+        else
+        {
+          word* alts_node = stack[sp--];
+
+          if (GetTag(alts_node[0]) != ALTS_NODE)
+          {
+            printf("Expected ALTS_NODE on stack when reading PACK on program.\n");
+            printf("Recieved node with tag %d\n", GetTag(alts_node[0]));
+            return;
+          }
+
+          int tag = program[pc++];
+          int arity = program[pc++];
+
+          pc = alts_node[tag];
+        }
         break;
       }
     }

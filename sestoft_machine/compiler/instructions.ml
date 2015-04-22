@@ -7,3 +7,5 @@ type instruction =
   | Enterglobal of string
   | Pushglobal of string
   | Freevars of int list
+  | Case of int
+  | Pack of int * int

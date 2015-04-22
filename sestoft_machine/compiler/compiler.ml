@@ -15,6 +15,14 @@ and compDefns (defns:(string * expr) list) (env:env) =
                                      (compC e env) @
                                      (Sep :: acc)) defns []
 
+and compAlt alt env n =
+  let (tag, vars, body) = alt in
+  let newEnv = List.mapi (fun i var -> (var, i)) (List.rev vars) @ argOffset env n in
+  compC body newEnv @ [Sep]
+
+and compAlts alts env n = 
+  List.flatten (List.map (fun alt -> compAlt alt env n) (List.sort (fun (t1,_,_) (t2,_,_) -> compare t1 t2) alts))
+
 and compC (expr:expr) (env:env) : instruction list =
   match expr with
   | App(e1, e2) -> 
@@ -26,6 +34,9 @@ and compC (expr:expr) (env:env) : instruction list =
     let n = List.length defns in
     let newEnv = (List.mapi (fun i (s, e) -> (s, i)) (List.rev defns)) @ argOffset env n in
     Let n :: (compDefns defns newEnv @ compC body newEnv)
+  | Case(e, alts) -> 
+    let n = List.length alts in
+    Case n :: (compC e env @ [Sep] @ compAlts alts env n)
   | _ -> failwith "Unsupported expression in abstract syntax tree"
 
 and compSc (sc:scdefn) (env:env) : instruction list =

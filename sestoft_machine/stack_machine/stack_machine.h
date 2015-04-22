@@ -15,10 +15,13 @@
 #define LET          4
 #define ENTERGLOBAL  5
 #define PUSHGLOBAL   6
+#define CASE         7
+#define PACK         8
 
-#define IND_NODE 0
+#define IND_NODE  0
 #define NULL_NODE 1
 #define CLOS_NODE 2
+#define ALTS_NODE 3
 
 #define DBToAIndex(i) ep-(i)
 
