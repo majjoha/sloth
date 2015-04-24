@@ -82,7 +82,7 @@ void update_indirection_node(word* ind_node, int ep, int pc, word** env)
 void execute_instructions(int* program, word** stack, word** env, small_bool* update_markers) {
   int sp = -1;
   int ep = -1;
-  int pc = 0;
+  int pc = 1;
   initialize_scs(program, env, &ep, &pc);
   printf("PC after SCs init: %d\n", pc);
 
@@ -264,6 +264,25 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
 
           pc = alts_node[tag+1];
         }
+        break;
+      }
+      case CSTI:
+      {
+        int n = program[pc++];
+
+        word* int_node = allocate(INT_NODE, 1);
+
+        int_node[1] = n;
+
+        env[0] = int_node;
+
+        ep = 0;
+
+        pc = 0;
+        break;
+      }
+      case INT:
+      {
         break;
       }
     }

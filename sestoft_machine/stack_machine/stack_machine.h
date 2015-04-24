@@ -17,11 +17,14 @@
 #define PUSHGLOBAL   6
 #define CASE         7
 #define PACK         8
+#define CSTI         9
+#define INT         10
 
 #define IND_NODE  0
 #define NULL_NODE 1
 #define CLOS_NODE 2
 #define ALTS_NODE 3
+#define INT_NODE  4
 
 #define DBToAIndex(i) ep-(i)
 

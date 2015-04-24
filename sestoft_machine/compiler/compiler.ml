@@ -7,6 +7,12 @@ open Preprocessor
 
 type compiledSc = (string * int * instruction list);;
 
+let compPrim =
+  [
+    ("add", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Add; Sep; Sep])
+  ]
+;;
+
 let rec compFvs (vars:string list) (env:env) =
   Freevars (List.map (fun s -> lookup env s) vars)
 
@@ -30,6 +36,7 @@ and compC (expr:expr) (env:env) : instruction list =
     | Var s -> Push (lookup env s) :: compC e1 env
     | _     -> failwith "Function applied to non-variable expression")
   | Var s -> Printf.fprintf stdout "%s\n" s; [Enter (lookup env s)]
+  | Num i -> [CstI i]
   | Letrec (defns, body) | Let (defns, body) -> 
     let n = List.length defns in
     let newEnv = (List.mapi (fun i (s, e) -> (s, i)) (List.rev defns)) @ argOffset env n in
@@ -72,8 +79,8 @@ and removeVars (vars:string list) (freeVars:string list) =
              else
                x :: (removeVars xs freeVars)
 
-and makeScEnv (prog:program) =
-  List.mapi (fun i (name, _, _) -> (name, i)) prog
+and makeScEnv (prog:program) (compPrim:compiledSc list) =
+  List.mapi (fun i name -> (name, i)) ((List.map (fun (name,_,_) -> name) prog) @ (List.map (fun (name,_,_) -> name) compPrim))
 
 and repeat thing n = 
   if n = 0 
