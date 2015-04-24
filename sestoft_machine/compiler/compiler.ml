@@ -58,7 +58,7 @@ and compSc (sc:scdefn) (env:env) : instruction list =
   (repeat Take args_count) @ compBody
 
 and compProg (prog:program) =
-  let env = makeScEnv prog in
+  let env = makeScEnv prog compPrim in
   List.map (fun sc -> let (name, args, body) = sc in (name, List.length args, (compSc sc env))) prog
 
 and findFreeVars (expr:expr) (freeVars:string list) =
