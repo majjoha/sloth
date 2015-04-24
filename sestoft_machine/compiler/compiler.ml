@@ -15,13 +15,14 @@ and compDefns (defns:(string * expr) list) (env:env) =
                                      (compC e env) @
                                      (Sep :: acc)) defns []
 
-and compAlt alt env n =
+and compAlt alt env =
   let (tag, vars, body) = alt in
-  let newEnv = List.mapi (fun i var -> (var, i)) (List.rev vars) @ argOffset env n in
+  let length = List.length vars in
+  let newEnv = List.mapi (fun i var -> (var, i)) (List.rev vars) @ argOffset env length in
   compC body newEnv @ [Sep]
 
-and compAlts alts env n = 
-  List.flatten (List.map (fun alt -> compAlt alt env n) (List.sort (fun (t1,_,_) (t2,_,_) -> compare t1 t2) alts))
+and compAlts alts env =
+  List.flatten (List.map (fun alt -> compAlt alt env) (List.sort (fun (t1,_,_) (t2,_,_) -> compare t1 t2) alts))
 
 and compC (expr:expr) (env:env) : instruction list =
   match expr with
@@ -36,7 +37,7 @@ and compC (expr:expr) (env:env) : instruction list =
     Let n :: (compDefns defns newEnv @ compC body newEnv)
   | Case(e, alts) -> 
     let n = List.length alts in
-    Case n :: (compC e env @ [Sep] @ compAlts alts env n)
+    Case n :: (compC e env @ [Sep] @ compAlts alts env)
   | Pack(tag, arity) ->
     (repeat Take arity) @ [Instructions.Pack (tag, arity)]
   | _ -> failwith ("Unsupported expression in abstract syntax tree: " ^ exprToStr expr)
@@ -64,13 +65,13 @@ and findFreeVars (expr:expr) (freeVars:string list) =
   | Case (cond, alts) -> freeVars
   | Num _ | Pack _ | Sel _ -> freeVars
 
-and removeVars (vars:string list) (freeVars:string list) =
+and removeVars (letBoundVars:string list) (freeVars:string list) =
   match freeVars with
   | [] -> []
-  | x::xs -> if (List.exists (fun y -> x = y) freeVars) then
-               removeVars xs freeVars
+  | x::xs -> if (List.exists (fun y -> x = y) letBoundVars) then
+               removeVars letBoundVars xs
              else
-               x :: (removeVars xs freeVars)
+               x :: (removeVars letBoundVars xs)
 
 and makeScEnv (prog:program) =
   List.mapi (fun i (name, _, _) -> (name, i)) prog

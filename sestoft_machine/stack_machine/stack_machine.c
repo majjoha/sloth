@@ -211,8 +211,8 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
 
         // Copy env to alts_node
         // n+2 = the number of tags + (the header + n)
-        for (int j = n+2; j <= ep+n+2; j++) {
-          alts_node[j] = (word) env[j];
+        for (int j = 0; j <= ep; j++) {
+          alts_node[j+n+2] = (word) env[j];
         }
 
         update_markers[++sp] = FALSE;
@@ -251,6 +251,13 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
             return;
           }
 
+          // Copy the old environment, so that we can use it to construct E''.
+          word** old_env = (word**)malloc(sizeof(word*)*arity);
+
+          for (int i = 0; i < arity; i++) {
+            old_env[arity-1-i] = env[DBToAIndex(i)];
+          }
+
           // copy alts_node env to global env
           int env_length = GetLength(alts_node[0]) - alts_node[1] - 1;
           int n = alts_node[1];
@@ -259,8 +266,13 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
             env[i] = (word*) alts_node[i+n+2];
           }
 
+          // Copy 1..a elements from the old environment into the new one.
+          for (int i = 0; i < arity; i++) {
+            env[i+env_length] = old_env[i];
+          }
+
           // set ep to the size of the alts_node env
-          ep = env_length - 1;
+          ep = env_length + arity - 1;
 
           pc = alts_node[tag+1];
         }

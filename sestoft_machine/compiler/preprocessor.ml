@@ -1,6 +1,6 @@
 open Absyn
 
-let generateVarName =
+let generateVarName () =
   Printf.sprintf "%f" (Sys.time ()) |> Digest.string |> Digest.to_hex;;
 ;;
 
@@ -13,7 +13,7 @@ let rec preprocessAppToLet (body:expr) =
   | App (e1, e2) ->
       (match e2 with
       | Var s -> App (preprocessAppToLet e1, e2)
-      | _ -> let varName = generateVarName in
+      | _ -> let varName = generateVarName () in
              Let ([(varName, preprocessAppToLet e2)],
                   App(preprocessAppToLet e1, Var varName)))
   | Let (defns, body) ->
