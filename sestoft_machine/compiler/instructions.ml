@@ -11,3 +11,12 @@ type instruction =
   | Pack of int * int
   | CstI of int
   | Add
+  | Sub
+  | Mul
+  | Div
+  | Lt
+  | Gt
+  | Le
+  | Ge
+  | Eq
+  | Neg

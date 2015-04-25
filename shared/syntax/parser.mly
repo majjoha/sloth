@@ -6,7 +6,7 @@
 %token <string> IDENT
 %token IN LET LETREC CASE OF PACK END
 %token COMMA SEMI
-%token PLUS MINUS TIMES DIV MOD
+%token PLUS MINUS TIMES DIV
 %token LT GT LE GE NEQ EQ
 %token OR AND
 %token RARROW
@@ -20,7 +20,7 @@
 %left EQ NEQ
 %nonassoc GT LT GE LE
 %left PLUS MINUS
-%left TIMES DIV MOD
+%left TIMES DIV
 %left OR
 %left AND
 
@@ -52,7 +52,6 @@ expr:
   | e1 = expr; MINUS; e2 = expr              { App(App(Var "sub", e1), e2) }
   | e1 = expr; TIMES; e2 = expr              { App(App(Var "mul", e1), e2) }
   | e1 = expr; DIV; e2 = expr                { App(App(Var "div", e1), e2) }
-  | e1 = expr; MOD; e2 = expr                { App(App(Var "mod", e1), e2) }
   | e1 = expr; LT; e2 = expr                 { App(App(Var "lt", e1), e2) }
   | e1 = expr; GT; e2 = expr                 { App(App(Var "gt", e1), e2) }
   | e1 = expr; EQ; e2 = expr                 { App(App(Var "eq", e1), e2) }

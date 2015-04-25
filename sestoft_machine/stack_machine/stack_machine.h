@@ -19,6 +19,15 @@
 #define PACK         8
 #define CSTI         9
 #define ADD         10
+#define SUB         11
+#define MUL         12
+#define DIV         13
+#define LT          14
+#define GT          15
+#define LE          16
+#define GE          17
+#define EQ          18
+#define NEG         19
 
 #define IND_NODE  0
 #define NULL_NODE 1

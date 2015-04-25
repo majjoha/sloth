@@ -82,7 +82,7 @@ void update_indirection_node(word* ind_node, int ep, int pc, word** env)
 void execute_instructions(int* program, word** stack, word** env, small_bool* update_markers) {
   int sp = -1;
   int ep = -1;
-  int pc = 3;
+  int pc = 9;
   initialize_scs(program, env, &ep, &pc);
   printf("PC after SCs init: %d\n", pc);
 
@@ -317,6 +317,121 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
 
         word* int_node = allocate(INT_NODE, 1);
         int_node[1] = a + b;
+
+        env[0] = int_node;
+        ep = 0;
+
+        pc = 0;
+        break;
+      }
+      case SUB:
+      {
+        int a = unbox_integer(env[ep--]);
+        int b = unbox_integer(env[ep--]);
+
+        word* int_node = allocate(INT_NODE, 1);
+        int_node[1] = b - a;
+
+        env[0] = int_node;
+        ep = 0;
+
+        pc = 0;
+        break;
+      }
+      case MUL:
+      {
+        int a = unbox_integer(env[ep--]);
+        int b = unbox_integer(env[ep--]);
+
+        word* int_node = allocate(INT_NODE, 1);
+        int_node[1] = a * b;
+
+        env[0] = int_node;
+        ep = 0;
+
+        pc = 0;
+        break;
+      }
+      case DIV:
+      {
+        int a = unbox_integer(env[ep--]);
+        int b = unbox_integer(env[ep--]);
+
+        word* int_node = allocate(INT_NODE, 1);
+        int_node[1] = b / a;
+
+        env[0] = int_node;
+        ep = 0;
+
+        pc = 0;
+        break;
+      }
+      case LT:
+      {
+        int a = unbox_integer(env[ep--]);
+        int b = unbox_integer(env[ep--]);
+
+        ep = -1;
+
+        if (b < a) pc = 6;
+        else pc = 3;
+
+        break;
+      }
+      case GT:
+      {
+        int a = unbox_integer(env[ep--]);
+        int b = unbox_integer(env[ep--]);
+
+        ep = -1;
+
+        if (b > a) pc = 6;
+        else pc = 3;
+
+        break;
+      }
+      case LE:
+      {
+        int a = unbox_integer(env[ep--]);
+        int b = unbox_integer(env[ep--]);
+
+        ep = -1;
+
+        if (b <= a) pc = 6;
+        else pc = 3;
+
+        break;
+      }
+      case GE:
+      {
+        int a = unbox_integer(env[ep--]);
+        int b = unbox_integer(env[ep--]);
+
+        ep = -1;
+
+        if (b >= a) pc = 6;
+        else pc = 3;
+
+        break;
+      }
+      case EQ:
+      {
+        int a = unbox_integer(env[ep--]);
+        int b = unbox_integer(env[ep--]);
+
+        ep = -1;
+
+        if (a == b) pc = 6;
+        else pc = 3;
+
+        break;
+      }
+      case NEG:
+      {
+        int a = unbox_integer(env[ep--]);
+
+        word* int_node = allocate(INT_NODE, 1);
+        int_node[1] = -a;
 
         env[0] = int_node;
         ep = 0;

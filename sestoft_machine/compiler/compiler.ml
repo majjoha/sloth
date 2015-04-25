@@ -9,7 +9,16 @@ type compiledSc = (string * int * instruction list);;
 
 let compPrim =
   [
-    ("add", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Add; Sep; Sep])
+    ("add", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Add; Sep; Sep]);
+    ("sub", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Sub; Sep; Sep]);
+    ("mul", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Mul; Sep; Sep]);
+    ("div", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Div; Sep; Sep]);
+    ("lt", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Lt; Sep; Sep]);
+    ("gt", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Gt; Sep; Sep]);
+    ("le", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Le; Sep; Sep]);
+    ("ge", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Ge; Sep; Sep]);
+    ("eq", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Eq; Sep; Sep]);
+    ("neg", 1, [Take; Case 1; Enter 0; Sep; Neg; Sep]);
   ]
 ;;
 
