@@ -2,7 +2,7 @@ type instruction =
   | Take
   | Enter of int
   | Push of int
-  | Sep
+  | Sepcase
   | Let of int
   | Enterglobal of string
   | Pushglobal of string
@@ -20,3 +20,4 @@ type instruction =
   | Ge
   | Eq
   | Neg
+  | Seplet

@@ -148,11 +148,11 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         update_markers[sp] = FALSE;
         break;
       }
-      case SEP: {
+      case SEPCASE: {
         break;
       }
       case LET: {
-        // LET n m 1 2 3 instrs SEP m 1 2 3 instrs SEP ... n
+        // LET n m 1 2 3 instrs SEPLET m 1 2 3 instrs SEPLET ... n
         int n = program[pc++];
 
         for (int i = 0; i < n; i++) {
@@ -182,9 +182,9 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
           word* ind_node = env[ep-(n-i)+1];
           ind_node[1] = (word) clos_node;
 
-          // We iterate over instructions until we meet the SEP instruction
+          // We iterate over instructions until we meet the SEPLET instruction
           // in order to find the number of instructions for the binding.
-          while (program[pc++] != SEP);
+          while (program[pc++] != SEPLET);
         }
 
         break;
@@ -196,7 +196,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         // The PC that we have to jump to after allocating alts_node
         int expr_pc = pc++;
 
-        while (program[pc++] != SEP);
+        while (program[pc++] != SEPCASE);
 
         int l = 1+n+ep+1;
         word* alts_node = allocate(ALTS_NODE, l);
@@ -206,7 +206,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         {
           alts_node[i] = pc;
 
-          while (program[pc++] != SEP);
+          while (program[pc++] != SEPCASE);
         }
 
         // Copy env to alts_node
@@ -437,6 +437,10 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         ep = 0;
 
         pc = 0;
+        break;
+      }
+      case SEPLET:
+      {
         break;
       }
     }

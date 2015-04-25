@@ -11,7 +11,7 @@
 #define TAKE         0
 #define ENTER        1
 #define PUSH         2
-#define SEP         -3
+#define SEPCASE     -3
 #define LET          4
 #define ENTERGLOBAL  5
 #define PUSHGLOBAL   6
@@ -28,6 +28,7 @@
 #define GE          17
 #define EQ          18
 #define NEG         19
+#define SEPLET     -20
 
 #define IND_NODE  0
 #define NULL_NODE 1

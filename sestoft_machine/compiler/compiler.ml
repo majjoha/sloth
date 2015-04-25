@@ -9,16 +9,16 @@ type compiledSc = (string * int * instruction list);;
 
 let compPrim =
   [
-    ("add", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Add; Sep; Sep]);
-    ("sub", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Sub; Sep; Sep]);
-    ("mul", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Mul; Sep; Sep]);
-    ("div", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Div; Sep; Sep]);
-    ("lt", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Lt; Sep; Sep]);
-    ("gt", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Gt; Sep; Sep]);
-    ("le", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Le; Sep; Sep]);
-    ("ge", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Ge; Sep; Sep]);
-    ("eq", 2, [Take; Take; Case 1; Enter 1; Sep; Case 1; Enter 1; Sep; Eq; Sep; Sep]);
-    ("neg", 1, [Take; Case 1; Enter 0; Sep; Neg; Sep]);
+    ("add", 2, [Take; Take; Case 1; Enter 1; Sepcase; Case 1; Enter 1; Sepcase; Add; Sepcase; Sepcase]);
+    ("sub", 2, [Take; Take; Case 1; Enter 1; Sepcase; Case 1; Enter 1; Sepcase; Sub; Sepcase; Sepcase]);
+    ("mul", 2, [Take; Take; Case 1; Enter 1; Sepcase; Case 1; Enter 1; Sepcase; Mul; Sepcase; Sepcase]);
+    ("div", 2, [Take; Take; Case 1; Enter 1; Sepcase; Case 1; Enter 1; Sepcase; Div; Sepcase; Sepcase]);
+    ("lt", 2, [Take; Take; Case 1; Enter 1; Sepcase; Case 1; Enter 1; Sepcase; Lt; Sepcase; Sepcase]);
+    ("gt", 2, [Take; Take; Case 1; Enter 1; Sepcase; Case 1; Enter 1; Sepcase; Gt; Sepcase; Sepcase]);
+    ("le", 2, [Take; Take; Case 1; Enter 1; Sepcase; Case 1; Enter 1; Sepcase; Le; Sepcase; Sepcase]);
+    ("ge", 2, [Take; Take; Case 1; Enter 1; Sepcase; Case 1; Enter 1; Sepcase; Ge; Sepcase; Sepcase]);
+    ("eq", 2, [Take; Take; Case 1; Enter 1; Sepcase; Case 1; Enter 1; Sepcase; Eq; Sepcase; Sepcase]);
+    ("neg", 1, [Take; Case 1; Enter 0; Sepcase; Neg; Sepcase]);
   ]
 ;;
 
@@ -28,13 +28,13 @@ let rec compFvs (vars:string list) (env:env) =
 and compDefns (defns:(string * expr) list) (env:env) =
   List.fold_right (fun (s, e) acc -> (compFvs (findFreeVars e []) env) ::
                                      (compC e env) @
-                                     (Sep :: acc)) defns []
+                                     (Seplet :: acc)) defns []
 
 and compAlt alt env =
   let (tag, vars, body) = alt in
   let length = List.length vars in
   let newEnv = List.mapi (fun i var -> (var, i)) (List.rev vars) @ argOffset env length in
-  compC body newEnv @ [Sep]
+  compC body newEnv @ [Sepcase]
 
 and compAlts alts env =
   List.flatten (List.map (fun alt -> compAlt alt env) (List.sort (fun (t1,_,_) (t2,_,_) -> compare t1 t2) alts))
@@ -53,7 +53,7 @@ and compC (expr:expr) (env:env) : instruction list =
     Let n :: (compDefns defns newEnv @ compC body newEnv)
   | Case(e, alts) -> 
     let n = List.length alts in
-    Case n :: (compC e env @ [Sep] @ compAlts alts env)
+    Case n :: (compC e env @ [Sepcase] @ compAlts alts env)
   | Pack(tag, arity) ->
     (repeat Take arity) @ [Instructions.Pack (tag, arity)]
   | _ -> failwith ("Unsupported expression in abstract syntax tree: " ^ exprToStr expr)
