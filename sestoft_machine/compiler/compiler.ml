@@ -59,7 +59,9 @@ and compSc (sc:scdefn) (env:env) : instruction list =
 
 and compProg (prog:program) =
   let env = makeScEnv prog compPrim in
-  List.map (fun sc -> let (name, args, body) = sc in (name, List.length args, (compSc sc env))) prog
+  printEnv env;
+  compPrim @
+  (List.map (fun sc -> let (name, args, body) = sc in (name, List.length args, (compSc sc env))) prog)
 
 and findFreeVars (expr:expr) (freeVars:string list) =
   match expr with
@@ -81,7 +83,9 @@ and removeVars (letBoundVars:string list) (freeVars:string list) =
                x :: (removeVars letBoundVars xs)
 
 and makeScEnv (prog:program) (compPrim:compiledSc list) =
-  List.mapi (fun i name -> (name, i)) ((List.map (fun (name,_,_) -> name) prog) @ (List.map (fun (name,_,_) -> name) compPrim))
+  List.mapi (fun i name -> (name, i))
+    ((List.map (fun (name,_,_) -> name) compPrim) @
+     (List.map (fun (name,_,_) -> name) prog))
 
 and repeat thing n = 
   if n = 0 

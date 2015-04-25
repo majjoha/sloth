@@ -4,6 +4,7 @@
 #include "debug.h"
 #include "stack_machine.h"
 #include "../../shared/mm/memory.h"
+#include "../../shared/utils.h"
 
 /*
 
@@ -25,10 +26,6 @@ int verbose = 0;
 
 dump_item make_dump_item(unsigned int pc, unsigned int sd, unsigned int bp) {
   return (pc << 22) | (sd << 11) | bp;
-}
-
-int unbox_integer(word* word) {
-  return word[1];
 }
 
 word* allocate(unsigned int tag, unsigned int length) {

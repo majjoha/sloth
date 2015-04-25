@@ -18,7 +18,7 @@
 #define CASE         7
 #define PACK         8
 #define CSTI         9
-#define INT         10
+#define ADD         10
 
 #define IND_NODE  0
 #define NULL_NODE 1

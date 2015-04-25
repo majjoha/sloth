@@ -10,5 +10,4 @@ type instruction =
   | Case of int
   | Pack of int * int
   | CstI of int
-  | Int
   | Add

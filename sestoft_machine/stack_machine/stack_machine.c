@@ -82,7 +82,7 @@ void update_indirection_node(word* ind_node, int ep, int pc, word** env)
 void execute_instructions(int* program, word** stack, word** env, small_bool* update_markers) {
   int sp = -1;
   int ep = -1;
-  int pc = 1;
+  int pc = 3;
   initialize_scs(program, env, &ep, &pc);
   printf("PC after SCs init: %d\n", pc);
 
@@ -168,9 +168,6 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
 
           word* clos_node = allocate_closure(ep, trimmer_length);
 
-          // Save PC pointer in first word
-          clos_node[1] = pc;
-
           // Copy env to closure
           copy_env(env, ep, clos_node);
 
@@ -178,6 +175,9 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
           for (int j = 0; j < trimmer_length; j++) {
             clos_node[j+ep+4] = program[pc++];
           }
+
+          // Save PC pointer in first word
+          clos_node[1] = pc;
 
           word* ind_node = env[ep-(n-i)+1];
           ind_node[1] = (word) clos_node;
@@ -226,7 +226,24 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         if (sp == -1)
         {
           printf("Reached the end of program with PC %d\n", pc-1);
-          //TODO: Print content of Pack
+
+          int tag = program[pc++];
+          int arity = program[pc++];
+
+          printf("Tag: %d\n", tag);
+          printf("Arity: %d\n", arity);
+
+          for (int i = 0; i < arity; i++) {
+            word* node = env[DBToAIndex(i)];
+
+            if (GetTag(node[0]) == INT_NODE) {
+              int n = unbox_integer(node);
+              printf("Result: %d\n", n);
+            } else {
+              printf("Tag: %d\n", GetTag(node[0]));
+            }
+          }
+
           return;
         }
 
@@ -293,8 +310,18 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         pc = 0;
         break;
       }
-      case INT:
+      case ADD:
       {
+        int a = unbox_integer(env[ep--]);
+        int b = unbox_integer(env[ep--]);
+
+        word* int_node = allocate(INT_NODE, 1);
+        int_node[1] = a + b;
+
+        env[0] = int_node;
+        ep = 0;
+
+        pc = 0;
         break;
       }
     }
