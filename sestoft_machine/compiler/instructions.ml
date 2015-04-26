@@ -2,12 +2,12 @@ type instruction =
   | Take
   | Enter of int
   | Push of int
-  | Sepcase
-  | Let of int
+  | Sepcase of int
+  | Let of int * int
   | Enterglobal of string
   | Pushglobal of string
   | Freevars of int list
-  | Case of int
+  | Case of int * int
   | Pack of int * int
   | CstI of int
   | Add
@@ -20,4 +20,4 @@ type instruction =
   | Ge
   | Eq
   | Neg
-  | Seplet
+  | Seplet of int

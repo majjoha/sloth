@@ -10,12 +10,12 @@ let incrementInstructionCount (count:int) (instr:instruction) : int =
   | Take          -> count+1
   | Enter _       -> count+2
   | Push _        -> count+2
-  | Sepcase       -> count+1
-  | Let _         -> count+2
+  | Sepcase _     -> count+2
+  | Let _         -> count+3
   | Enterglobal _ -> count+2
   | Pushglobal _  -> count+2
   | Freevars s    -> count+(List.length s)+1
-  | Case _        -> count+2
+  | Case _        -> count+3
   | Pack _        -> count+3
   | CstI _        -> count+2
   | Add           -> count+1
@@ -28,7 +28,7 @@ let incrementInstructionCount (count:int) (instr:instruction) : int =
   | Ge            -> count+1
   | Eq            -> count+1
   | Neg           -> count+1
-  | Seplet       -> count+1
+  | Seplet _      -> count+2
 ;;
 
 let instructionToCode (instruction:instruction) (labelEnv:env) : int list =
@@ -36,12 +36,12 @@ let instructionToCode (instruction:instruction) (labelEnv:env) : int list =
   | Take -> [0]
   | Enter n -> [1; n]
   | Push n -> [2; n]
-  | Sepcase -> [-3]
-  | Let i -> [4; i]
+  | Sepcase n -> [-3; n]
+  | Let (d, i) -> [4; d; i]
   | Enterglobal s -> [5; (lookup labelEnv s)]
   | Pushglobal s -> [6; (lookup labelEnv s)]
   | Freevars s -> List.length s :: s
-  | Case i -> [7; i]
+  | Case (d, i) -> [7; d; i]
   | Pack (t, a) -> [8; t; a]
   | CstI i -> [9; i]
   | Add    -> [10]
@@ -54,7 +54,7 @@ let instructionToCode (instruction:instruction) (labelEnv:env) : int list =
   | Ge     -> [17]
   | Eq     -> [18]
   | Neg    -> [19]
-  | Seplet -> [-20]
+  | Seplet n -> [-20; n]
 ;;
 
 (*

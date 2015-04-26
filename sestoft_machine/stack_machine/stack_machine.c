@@ -149,10 +149,14 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         break;
       }
       case SEPCASE: {
+        printf("PC reached SEPCASE.\n");
+        return;
         break;
       }
       case LET: {
-        // LET n m 1 2 3 instrs SEPLET m 1 2 3 instrs SEPLET ... n
+        // LET d n t 1 2 3 instrs SEPLET t 1 2 3 instrs SEPLET ...
+        int depth = program[pc++];
+
         int n = program[pc++];
 
         for (int i = 0; i < n; i++) {
@@ -183,20 +187,23 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
           ind_node[1] = (word) clos_node;
 
           // We iterate over instructions until we meet the SEPLET instruction
-          // in order to find the number of instructions for the binding.
-          while (program[pc++] != SEPLET);
+          // with the correct depth in order to find the number of instructions
+          // for the binding.
+          while (!(program[pc++] == SEPLET && program[pc++] == depth));
         }
 
         break;
       }
       case CASE:
       {
+        int depth = program[pc++];
+
         int n = program[pc++];
 
         // The PC that we have to jump to after allocating alts_node
         int expr_pc = pc++;
 
-        while (program[pc++] != SEPCASE);
+        while (!(program[pc++] == SEPCASE && program[pc++] == depth));
 
         int l = 1+n+ep+1;
         word* alts_node = allocate(ALTS_NODE, l);
@@ -206,7 +213,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         {
           alts_node[i] = pc;
 
-          while (program[pc++] != SEPCASE);
+          while (!(program[pc++] == SEPCASE && program[pc++] == depth));
         }
 
         // Copy env to alts_node
@@ -441,6 +448,8 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
       }
       case SEPLET:
       {
+        printf("PC reached SEPLET.\n");
+        return;
         break;
       }
     }
