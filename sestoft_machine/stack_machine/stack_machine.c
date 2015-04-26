@@ -119,11 +119,10 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
       case ENTER: {
         // var 1 rule
         int u = program[pc++];
-        word* node = env[DBToAIndex(u)];
+        word* ind_node = env[DBToAIndex(u)];
 
         // jump to code for closure
-        // TODO: Are we sure that node is always IND_NODE pointing to a CLOS_NODE?
-        word* clos_node = (word*) node[1];
+        word* clos_node = (word*) ind_node[1];
         pc = clos_node[1];
 
         // copy closure env to global env
@@ -137,7 +136,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         ep = env_length - 1;
 
         // push update marker to stack
-        stack[++sp] = node;
+        stack[++sp] = ind_node;
         update_markers[sp] = TRUE;
         break;
       }
@@ -151,7 +150,6 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
       case SEPCASE: {
         printf("PC reached SEPCASE.\n");
         return;
-        break;
       }
       case LET: {
         // LET d n t 1 2 3 instrs SEPLET t 1 2 3 instrs SEPLET ...
@@ -450,7 +448,6 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
       {
         printf("PC reached SEPLET.\n");
         return;
-        break;
       }
       case NEQ:
       {
