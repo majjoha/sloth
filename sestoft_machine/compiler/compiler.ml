@@ -19,6 +19,8 @@ let compPrim =
     ("ge", 2, [Take; Take; Case (0, 1); Enter 1; Sepcase 0; Case (1, 1); Enter 1; Sepcase 1; Ge; Sepcase 1; Sepcase 0]);
     ("eq", 2, [Take; Take; Case (0, 1); Enter 1; Sepcase 0; Case (1, 1); Enter 1; Sepcase 1; Eq; Sepcase 1; Sepcase 0]);
     ("neg", 1, [Take; Case (0, 1); Enter 0; Sepcase 0; Neg; Sepcase 0]);
+    ("neq", 2, [Take; Take; Case (0, 1); Enter 1; Sepcase 0; Case (1, 1); Enter 1; Sepcase 1; Neq; Sepcase 1; Sepcase 0]);
+    ("if", 3, [Take; Take; Take; Case(0, 2); Enter 2; Sepcase 0; Enter 0; Sepcase 0; Enter 1; Sepcase 0]);
   ]
 ;;
 

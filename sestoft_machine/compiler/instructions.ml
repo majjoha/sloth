@@ -21,3 +21,4 @@ type instruction =
   | Eq
   | Neg
   | Seplet of int
+  | Neq

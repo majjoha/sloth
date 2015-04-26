@@ -29,6 +29,7 @@ let incrementInstructionCount (count:int) (instr:instruction) : int =
   | Eq            -> count+1
   | Neg           -> count+1
   | Seplet _      -> count+2
+  | Neq           -> count+1
 ;;
 
 let instructionToCode (instruction:instruction) (labelEnv:env) : int list =
@@ -55,6 +56,7 @@ let instructionToCode (instruction:instruction) (labelEnv:env) : int list =
   | Eq     -> [18]
   | Neg    -> [19]
   | Seplet n -> [-20; n]
+  | Neq    -> [21]
 ;;
 
 (*

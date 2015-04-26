@@ -452,6 +452,18 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         return;
         break;
       }
+      case NEQ:
+      {
+        int a = unbox_integer(env[ep--]);
+        int b = unbox_integer(env[ep--]);
+
+        ep = -1;
+
+        if (a != b) pc = 6;
+        else pc = 3;
+
+        break;
+      }
     }
   }
 }

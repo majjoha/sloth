@@ -29,6 +29,7 @@
 #define EQ          18
 #define NEG         19
 #define SEPLET     -20
+#define NEQ         21
 
 #define IND_NODE  0
 #define NULL_NODE 1
