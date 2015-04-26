@@ -22,3 +22,4 @@ type instruction =
   | Neg
   | Seplet of int
   | Neq
+  | Print

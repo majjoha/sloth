@@ -13,7 +13,7 @@ word* lastFreeHeapNode;
 
 word* allocate(unsigned int tag, unsigned int length) {
   word* heap_address = allocate_block(tag, length, &lastFreeHeapNode);
-  printf("Heap address: %d\n", address_to_heap_index(heap_address, heap));
+  //printf("Heap address: %d\n", address_to_heap_index(heap_address, heap));
   return heap_address;
 }
 
@@ -79,33 +79,54 @@ void update_indirection_node(word* ind_node, int ep, int pc, word** env)
   ind_node[1] = (word) clos_node;
 }
 
-void execute_instructions(int* program, word** stack, word** env, small_bool* update_markers) {
+void enter_closure(word* ind_node, int* pc, word** env, int* ep, word** stack, small_bool* update_markers, int* sp)
+{
+  word* clos_node = (word*) ind_node[1];
+
+  *pc = clos_node[1];
+
+  // copy closure env to global env
+  int env_length = clos_node[2];
+  for (int i = 0; i < env_length; i++)
+  {
+    env[i] = (word*) clos_node[i+3];
+  }
+
+  // set ep to the size of the closure env
+  *ep = env_length - 1;
+
+  // push update marker to stack
+  stack[++(*sp)] = ind_node;
+  update_markers[(*sp)] = TRUE;
+}
+
+void execute_instructions(int* program, word** stack, word** env, small_bool* update_markers, word** print_stack) {
   int sp = -1;
   int ep = -1;
-  int pc = 9;
+  int pp = -1;
+  int pc = START_PC;
   initialize_scs(program, env, &ep, &pc);
-  printf("PC after SCs init: %d\n", pc);
+  //printf("PC after SCs init: %d\n", pc);
 
   for (;;) {
-    printf("PC before switch: %d\n", pc);
-    if (ep > 990) printf("EP: %d\n", ep);
-    printf("SP: %d\n", sp);
+    //printf("PC before switch: %d\n", pc);
+    //if (ep > 990) printf("EP: %d\n", ep);
+    //printf("SP: %d\n", sp);
     switch(program[pc++]) {
       case TAKE: {
         if (sp == -1) {
-          printf("Reached the end of the program with pc %d\n", pc-1);
-          return;
+          printf("Evaluated to TAKE with PC %d\n", pc-1);
+          pc = PRINT_PC;
+          break;
         }
 
         word* node = stack[sp--];
 
-        printf("Update marker: %d\n", update_markers[sp+1]);
+        //printf("Update marker: %d\n", update_markers[sp+1]);
 
         if (update_markers[sp+1])
         {
-          // var 2 rule
-          printf("Var 2 rule\n");
-          
+          // var 2 rule    
           update_indirection_node(node, ep, --pc, env);
         }
         else
@@ -122,22 +143,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         word* ind_node = env[DBToAIndex(u)];
 
         // jump to code for closure
-        word* clos_node = (word*) ind_node[1];
-        pc = clos_node[1];
-
-        // copy closure env to global env
-        int env_length = clos_node[2];
-        for (int i = 0; i < env_length; i++)
-        {
-          env[i] = (word*) clos_node[i+3];
-        }
-
-        // set ep to the size of the closure env
-        ep = env_length - 1;
-
-        // push update marker to stack
-        stack[++sp] = ind_node;
-        update_markers[sp] = TRUE;
+        enter_closure(ind_node, &pc, env, &ep, stack, update_markers, &sp);
         break;
       }
       case PUSH: {
@@ -230,7 +236,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
       {
         if (sp == -1)
         {
-          printf("Reached the end of program with PC %d\n", pc-1);
+          printf("Evaluated to PACK with PC %d\n", pc-1);
 
           int tag = program[pc++];
           int arity = program[pc++];
@@ -241,15 +247,19 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
           for (int i = 0; i < arity; i++) {
             word* node = env[DBToAIndex(i)];
 
+            // Unless we are at the special Integer Pack, 
+            // then the elements of the pack will always be indirection nodes
+            // pointing to closures
             if (GetTag(node[0]) == INT_NODE) {
               int n = unbox_integer(node);
               printf("Result: %d\n", n);
             } else {
-              printf("Tag: %d\n", GetTag(node[0]));
+              print_stack[++pp] = node;
             }
           }
 
-          return;
+          pc = PRINT_PC;
+          break;
         }
 
         if (update_markers[sp])
@@ -312,7 +322,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
 
         ep = 0;
 
-        pc = 0;
+        pc = INT_PC;
         break;
       }
       case ADD:
@@ -326,7 +336,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         env[0] = int_node;
         ep = 0;
 
-        pc = 0;
+        pc = INT_PC;
         break;
       }
       case SUB:
@@ -340,7 +350,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         env[0] = int_node;
         ep = 0;
 
-        pc = 0;
+        pc = INT_PC;
         break;
       }
       case MUL:
@@ -354,7 +364,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         env[0] = int_node;
         ep = 0;
 
-        pc = 0;
+        pc = INT_PC;
         break;
       }
       case DIV:
@@ -368,7 +378,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         env[0] = int_node;
         ep = 0;
 
-        pc = 0;
+        pc = INT_PC;
         break;
       }
       case LT:
@@ -378,8 +388,8 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
 
         ep = -1;
 
-        if (b < a) pc = 6;
-        else pc = 3;
+        if (b < a) pc = TRUE_PC;
+        else pc = FALSE_PC;
 
         break;
       }
@@ -390,8 +400,8 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
 
         ep = -1;
 
-        if (b > a) pc = 6;
-        else pc = 3;
+        if (b > a) pc = TRUE_PC;
+        else pc = FALSE_PC;
 
         break;
       }
@@ -402,8 +412,8 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
 
         ep = -1;
 
-        if (b <= a) pc = 6;
-        else pc = 3;
+        if (b <= a) pc = TRUE_PC;
+        else pc = FALSE_PC;
 
         break;
       }
@@ -414,8 +424,8 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
 
         ep = -1;
 
-        if (b >= a) pc = 6;
-        else pc = 3;
+        if (b >= a) pc = TRUE_PC;
+        else pc = FALSE_PC;
 
         break;
       }
@@ -426,8 +436,8 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
 
         ep = -1;
 
-        if (a == b) pc = 6;
-        else pc = 3;
+        if (a == b) pc = TRUE_PC;
+        else pc = FALSE_PC;
 
         break;
       }
@@ -441,7 +451,7 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         env[0] = int_node;
         ep = 0;
 
-        pc = 0;
+        pc = INT_PC;
         break;
       }
       case SEPLET:
@@ -456,9 +466,25 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
 
         ep = -1;
 
-        if (a != b) pc = 6;
-        else pc = 3;
+        if (a != b) pc = TRUE_PC;
+        else pc = FALSE_PC;
 
+        break;
+      }
+      case PRINT:
+      {
+        if (pp == -1) {
+          return;
+        }
+
+        word* ind_node = print_stack[pp--];
+
+        if (GetTag(ind_node[0]) != IND_NODE) {
+          printf("Element on print stack is not indirection node\n");
+          return;
+        }
+
+        enter_closure(ind_node, &pc, env, &ep, stack, update_markers, &sp);
         break;
       }
     }
@@ -470,9 +496,10 @@ int execute(char* filename) {
   word** stack = (word**)malloc(sizeof(word*) * STACK_SIZE);
   small_bool* update_markers = malloc(sizeof(small_bool*) * STACK_SIZE);
   word** env = (word**)malloc(sizeof(word*) * ENV_SIZE);
+  word** print_stack = (word**)malloc(sizeof(word*) * PRINT_STACK_SIZE);
   init_heap(&heap, &afterHeap, &lastFreeHeapNode, HEAP_SIZE);
 
-  execute_instructions(program, stack, env, update_markers);
+  execute_instructions(program, stack, env, update_markers, print_stack);
 
   return 0;
 }

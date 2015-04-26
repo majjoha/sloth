@@ -30,6 +30,7 @@ let incrementInstructionCount (count:int) (instr:instruction) : int =
   | Neg           -> count+1
   | Seplet _      -> count+2
   | Neq           -> count+1
+  | Print         -> count+1
 ;;
 
 let instructionToCode (instruction:instruction) (labelEnv:env) : int list =
@@ -57,6 +58,7 @@ let instructionToCode (instruction:instruction) (labelEnv:env) : int list =
   | Neg    -> [19]
   | Seplet n -> [-20; n]
   | Neq    -> [21]
+  | Print  -> [22]
 ;;
 
 (*
@@ -84,11 +86,12 @@ let getMainDeBruijn (compiledScs:compiledSc list) : int =
 
 let codeGeneration (compiledScs:compiledSc list) : int list =
   let scsCount = List.length compiledScs in
-  let env = generateScEnv compiledScs (scsCount+12) in
+  let env = generateScEnv compiledScs (scsCount+13) in
   printEnv env;
   (instructionToCode (Pack (1, 1)) env) @ 
   instructionToCode (Pack(1,0)) env @
   instructionToCode (Pack(2,0)) env @
+  instructionToCode Print env @
   [scsCount] @ (List.rev (List.map (fun (s, i) -> i) env)) @
   (instructionToCode (Enter (getMainDeBruijn compiledScs))) env @ codeGenerationHelper compiledScs env
 ;;

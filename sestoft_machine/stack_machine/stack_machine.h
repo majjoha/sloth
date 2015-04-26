@@ -7,6 +7,7 @@
 #define STACK_SIZE 1000
 #define HEAP_SIZE  10000
 #define ENV_SIZE   1000
+#define PRINT_STACK_SIZE 1000
 
 #define TAKE         0
 #define ENTER        1
@@ -30,12 +31,19 @@
 #define NEG         19
 #define SEPLET     -20
 #define NEQ         21
+#define PRINT       22
 
 #define IND_NODE  0
 #define NULL_NODE 1
 #define CLOS_NODE 2
 #define ALTS_NODE 3
 #define INT_NODE  4
+
+#define INT_PC    0
+#define FALSE_PC  3
+#define TRUE_PC   6
+#define PRINT_PC  9
+#define START_PC 10
 
 #define DBToAIndex(i) ep-(i)
 
