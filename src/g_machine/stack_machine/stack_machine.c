@@ -3,7 +3,7 @@
 #include <string.h>
 #include "debug.h"
 #include "stack_machine.h"
-#include "../../shared/mm/memory.h"
+#include "memory.h"
 #include "../../shared/utils.h"
 
 /*
@@ -21,22 +21,21 @@ about the previous stack context.
 
 */
 
-word* heap;
-word* afterHeap;
-word* lastFreeHeapNode;
 int verbose = 0;
 int manualStep = 0;
+int sp;
+word** stack;
 
 dump_item make_dump_item(unsigned int pc, unsigned int sd, unsigned int bp) {
   return (pc << 22) | (sd << 11) | bp;
 }
 
 word* allocate(unsigned int tag, unsigned int length) {
-  return allocate_block(tag, length, &lastFreeHeapNode);
+  return allocate_block(tag, length, stack, sp);
 }
 
-void execute_instructions(int* program, word** stack, dump_item* dump) {
-  int sp = -1;
+void execute_instructions(int* program, dump_item* dump) {
+  sp = -1;
   int pc = 3;
   int dp = -1;
 
@@ -172,7 +171,7 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
         }
         word* old_node = stack[temp];
         // convert old node into indirection node
-        *old_node = make_header(IND_NODE, 1, Blue);
+        convert_block_to_indirection_node(old_node);
         // set indirection node to point to the node from the tip of the spine
         old_node[1] = (word)node;
         break;
@@ -191,7 +190,8 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
         for (int i = 0; i < n; i++) {
           word* ind_node = allocate(IND_NODE, 1);
           word* null_node = allocate(NULL_NODE, 0);
-          ind_node[1] = (word)null_node;
+          //word* null_node = NULL;
+          ind_node[1] = (word) null_node;
           stack[++sp] = ind_node;
         }
         break;
@@ -426,11 +426,11 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
 
 int execute(char* filename) {
   int* program = read_file(filename);
-  word** stack = (word**)malloc(sizeof(word*) * STACK_SIZE);
+  stack = (word**)malloc(sizeof(word*) * STACK_SIZE);
   dump_item* dump = (dump_item*)malloc(sizeof(dump_item) * DUMP_SIZE);
-  init_heap(&heap, &afterHeap, &lastFreeHeapNode, HEAP_SIZE);
+  init_heap(HEAP_SIZE);
 
-  execute_instructions(program, stack, dump);
+  execute_instructions(program, dump);
 
   return 0;
 }
