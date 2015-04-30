@@ -5,27 +5,27 @@ set -e
 . assert.sh
 
 function run_sieve() {
-  ../g_machine/stack_machine/stack_machine ../examples/sieve_example.slg
+  ../src/g_machine/stack_machine/stack_machine ../examples/sieve_example.slg
 }
 
 function run_cons() {
-  ../g_machine/stack_machine/stack_machine ../examples/cons_example.slg
+  ../src/g_machine/stack_machine/stack_machine ../examples/cons_example.slg
 }
 
 function run_cons() {
-  ../g_machine/stack_machine/stack_machine ../examples/cons_example.slg
+  ../src/g_machine/stack_machine/stack_machine ../examples/cons_example.slg
 }
 
 function run_double_if() {
-  ../g_machine/stack_machine/stack_machine ../examples/double_if.slg
+  ../src/g_machine/stack_machine/stack_machine ../examples/double_if.slg
 }
 
 function run_fact() {
-  ../g_machine/stack_machine/stack_machine ../examples/fact.slg
+  ../src/g_machine/stack_machine/stack_machine ../examples/fact.slg
 }
 
 function run_inf() {
-  ../g_machine/stack_machine/stack_machine ../examples/inf_example.slg
+  ../src/g_machine/stack_machine/stack_machine ../examples/inf_example.slg
 }
 
 assert run_sieve "2\n3\n5\n7\n11"
