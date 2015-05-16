@@ -121,7 +121,6 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
               }
 
               sp = sp-n;
-              // TODO: Garbage collection må ikke ske her
               stack[sp] = pack_node;
             }
 
@@ -333,8 +332,6 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
         word* pack_node = stack[sp];
         int matched = 0;
 
-        /* printf("Casejumpin'\n"); */
-
         for (int i = 0; i < n*2; i = i+2) {
           int tag = program[pc+i];
           int lab = program[pc+i+1];
@@ -363,6 +360,7 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
               return;
             }
 
+            //TODO: Unreachable code?
             sp--;
             pc = 1;
             break;
