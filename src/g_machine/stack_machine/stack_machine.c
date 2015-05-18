@@ -309,8 +309,10 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
         word* pack_node = allocate(PACK_NODE, 2+n);
         pack_node[1] = tag;
         pack_node[2] = n;
-        pack_node[3] = (word) NULL;
-        pack_node[4] = (word) NULL;
+        for (int i = 0; i < n; i++)
+        {
+          pack_node[3+i] = (word) NULL;
+        }
         stack[++sp] = pack_node;
         break;
       }
@@ -360,7 +362,6 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
               return;
             }
 
-            //TODO: Unreachable code?
             sp--;
             pc = 1;
             break;
@@ -368,11 +369,14 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
           case PACK_NODE: {
             int n = node[2];
 
-            if (n == 0) return;
-
             for (int i = n+2; i >= 3; i--)
             {
               stack[sp++] = (word*)node[i];
+            }
+
+            if (sp == 0)
+            {
+              return;
             }
 
             sp--;
