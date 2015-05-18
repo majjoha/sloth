@@ -3,8 +3,8 @@
 #include "read_file.h"
 
 int* read_file(char* filename) {
-  int* program = (int*)malloc(sizeof(int)*1000);
-  FILE *source = fopen(filename, "r");
+  int* program = (int*)malloc(sizeof(int) * 1000);
+  FILE* source = fopen(filename, "r");
   int i = 0;
   int num;
 
