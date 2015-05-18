@@ -12,10 +12,6 @@ function run_cons() {
   ../src/g_machine/stack_machine/stack_machine ../examples/cons_example.slg
 }
 
-function run_cons() {
-  ../src/g_machine/stack_machine/stack_machine ../examples/cons_example.slg
-}
-
 function run_double_if() {
   ../src/g_machine/stack_machine/stack_machine ../examples/double_if.slg
 }
@@ -32,5 +28,5 @@ assert run_sieve "2\n3\n5\n7\n11"
 assert run_cons "1\n2\n3"
 assert run_double_if "42"
 assert run_fact "120\n24\n6\n2\n1\n1"
-assert run_inf "5"
+assert run_inf "25"
 assert_end
