@@ -13,7 +13,6 @@ word* lastFreeHeapNode;
 
 word* allocate(unsigned int tag, unsigned int length) {
   word* heap_address = allocate_block(tag, length, &lastFreeHeapNode);
-  //printf("Heap address: %d\n", address_to_heap_index(heap_address, heap));
   return heap_address;
 }
 
@@ -106,12 +105,8 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
   int pp = -1;
   int pc = START_PC;
   initialize_scs(program, env, &ep, &pc);
-  //printf("PC after SCs init: %d\n", pc);
 
   for (;;) {
-    //printf("PC before switch: %d\n", pc);
-    //if (ep > 990) printf("EP: %d\n", ep);
-    //printf("SP: %d\n", sp);
     switch(program[pc++]) {
       case TAKE: {
         if (sp == -1) {
@@ -121,8 +116,6 @@ void execute_instructions(int* program, word** stack, word** env, small_bool* up
         }
 
         word* node = stack[sp--];
-
-        //printf("Update marker: %d\n", update_markers[sp+1]);
 
         if (update_markers[sp+1])
         {
