@@ -10,9 +10,11 @@
 
 NOTES
 
-The first instruction in a supercombinator is the number of input arguments to the supercombinator.
+The first instruction in a supercombinator is the number of input arguments to
+the supercombinator.
 
-The first instruction in the program is always Unwind. This used when unwinding a new stack after eval.
+The first instruction in the program is always Unwind. This used when unwinding
+a new stack after eval.
 
 dp points to the current dump item. The current dump item contains information
 about the previous stack context.
@@ -68,10 +70,10 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
       }
       case MKAP: {
         word* left = stack[sp];
-        word* right = stack[sp-1];
+        word* right = stack[sp - 1];
         word* app_node = allocate(APP_NODE, 2);
-        app_node[1] = (word) left;
-        app_node[2] = (word) right;
+        app_node[1] = (word)left;
+        app_node[2] = (word)right;
         stack[--sp] = app_node;
         break;
       }
@@ -80,30 +82,29 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
           case INTEGER_NODE: {
             pc = GetPc(dump[dp--]);
             break;
-          }  
+          }
           case APP_NODE: {
             word* app_node = stack[sp];
-            stack[++sp] = (word*) app_node[1];
+            stack[++sp] = (word*)app_node[1];
             pc--;
             break;
           }
           case GLOBAL_NODE: {
             // load the code of the function
             word* global_node = stack[sp];
-            pc = (int) global_node[1];
+            pc = (int)global_node[1];
 
             // rearrange stack
-            for (int i = 0; i < program[pc]; i++)
-            {
-              word* app_node = stack[sp-(i+1)];
-              stack[sp-i] = (word*) app_node[2];
+            for (int i = 0; i < program[pc]; i++) {
+              word* app_node = stack[sp - (i + 1)];
+              stack[sp - i] = (word*)app_node[2];
             }
             pc++;
             break;
           }
           case IND_NODE: {
             word* ind_node = stack[sp];
-            word* node = (word*) ind_node[1];
+            word* node = (word*)ind_node[1];
             stack[sp] = node;
             pc--;
             break;
@@ -112,15 +113,13 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
             word* pack_node = stack[sp];
             int n = pack_node[2];
 
-            if ((word*) pack_node[3] == NULL)
-            {
-              for (int i = 0; i < n; i++)
-              {
-                word* app_node = stack[sp-(i+1)];
-                pack_node[3+i] = app_node[2];
+            if ((word*)pack_node[3] == NULL) {
+              for (int i = 0; i < n; i++) {
+                word* app_node = stack[sp - (i + 1)];
+                pack_node[3 + i] = app_node[2];
               }
 
-              sp = sp-n;
+              sp = sp - n;
               stack[sp] = pack_node;
             }
 
@@ -153,8 +152,7 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
         int n = program[pc++];
         int temp;
         // find update target
-        if (n > sp)
-        {
+        if (n > sp) {
           temp = GetCurrentBp();
         } else {
           temp = GtoAIndex(n);
@@ -163,13 +161,12 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
         // convert old node into indirection node
         *old_node = make_header(IND_NODE, 1, Blue);
         // set indirection node to point to the node from the tip of the spine
-        old_node[1] = (word) node;
+        old_node[1] = (word)node;
         break;
       }
       case POP: {
         int n = program[pc++];
-        if (n > sp)
-        {
+        if (n > sp) {
           sp = GetCurrentBp();
         } else {
           sp = sp - n;
@@ -178,11 +175,10 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
       }
       case ALLOC: {
         int n = program[pc++];
-        for (int i = 0; i < n; i++)
-        {
+        for (int i = 0; i < n; i++) {
           word* ind_node = allocate(IND_NODE, 1);
           word* null_node = allocate(NULL_NODE, 0);
-          ind_node[1] = (word) null_node;
+          ind_node[1] = (word)null_node;
           stack[++sp] = ind_node;
         }
         break;
@@ -306,12 +302,11 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
       case PACK: {
         int tag = program[pc++];
         int n = program[pc++];
-        word* pack_node = allocate(PACK_NODE, 2+n);
+        word* pack_node = allocate(PACK_NODE, 2 + n);
         pack_node[1] = tag;
         pack_node[2] = n;
-        for (int i = 0; i < n; i++)
-        {
-          pack_node[3+i] = (word) NULL;
+        for (int i = 0; i < n; i++) {
+          pack_node[3 + i] = (word)NULL;
         }
         stack[++sp] = pack_node;
         break;
@@ -320,8 +315,7 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
         int n = program[pc++];
         word* pack_node = stack[sp];
 
-        for (int i = n+2; i >= 3; i--)
-        {
+        for (int i = n + 2; i >= 3; i--) {
           stack[sp++] = (word*)pack_node[i];
         }
 
@@ -334,9 +328,9 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
         word* pack_node = stack[sp];
         int matched = 0;
 
-        for (int i = 0; i < n*2; i = i+2) {
-          int tag = program[pc+i];
-          int lab = program[pc+i+1];
+        for (int i = 0; i < n * 2; i = i + 2) {
+          int tag = program[pc + i];
+          int lab = program[pc + i + 1];
 
           if (tag == pack_node[1]) {
             pc = lab;
@@ -369,13 +363,11 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
           case PACK_NODE: {
             int n = node[2];
 
-            for (int i = n+2; i >= 3; i--)
-            {
+            for (int i = n + 2; i >= 3; i--) {
               stack[sp++] = (word*)node[i];
             }
 
-            if (sp == 0)
-            {
+            if (sp == 0) {
               return;
             }
 
@@ -392,7 +384,8 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
         break;
       }
       default:
-        printf("Illegal instruction %d at address %d\n", program[pc-1], pc-1);
+        printf("Illegal instruction %d at address %d\n", program[pc - 1],
+               pc - 1);
         exit(EXIT_FAILURE);
     }
   }
