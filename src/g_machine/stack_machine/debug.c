@@ -120,6 +120,10 @@ void print_instruction(int* instructions, int* pi) {
       printf("CASEJUMP;");
       break;
     }
+	case PRINT: {
+	  printf("PRINT;");
+	  break;
+    }
     default:
       printf("<unknown> ");
   }
