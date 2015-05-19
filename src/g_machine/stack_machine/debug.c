@@ -39,6 +39,7 @@ void print_instruction(int* instructions, int* pi) {
     case PACK: { printf("PACK %d %d;", instructions[++(*pi)], instructions[++(*pi)]); break;}
     case SPLIT: { printf("SPLIT %d;", instructions[++(*pi)]); break;}
     case CASEJUMP: { printf("CASEJUMP;"); break;}
+    case PRINT: {printf("PRINT;"); break;}
     default: printf("<unknown> ");
   }
 }
