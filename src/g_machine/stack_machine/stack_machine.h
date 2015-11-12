@@ -40,7 +40,8 @@
 #define GLOBAL_NODE  2
 #define IND_NODE 3
 #define NULL_NODE 4
-#define PACK_NODE 5
+#define CONSTR_NODE 5
+#define PACK_NODE 6
 
 #define GtoAIndex(i) sp-(i)
 #define GetPc(di) ((di)>>22)

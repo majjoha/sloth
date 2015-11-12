@@ -25,6 +25,7 @@ word* heap;
 word* afterHeap;
 word* lastFreeHeapNode;
 int verbose = 0;
+int manualStep = 0;
 
 dump_item make_dump_item(unsigned int pc, unsigned int sd, unsigned int bp) {
   return (pc << 22) | (sd << 11) | bp;
@@ -47,6 +48,10 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
       printf("Current instruction: ");
       print_instruction(program, &vpc);
       printf("\n\n*************************************\n\n");
+    }
+
+    if (manualStep) {
+      getchar();
     }
 
     switch (program[pc++]) {
@@ -109,20 +114,28 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
             pc--;
             break;
           }
+          case CONSTR_NODE: {
+            pc = GetPc(dump[dp--]);
+            break;
+          }
           case PACK_NODE: {
             word* pack_node = stack[sp];
+            int tag = pack_node[1];
             int n = pack_node[2];
-
-            if ((word*)pack_node[3] == NULL) {
-              for (int i = 0; i < n; i++) {
-                word* app_node = stack[sp - (i + 1)];
-                pack_node[3 + i] = app_node[2];
-              }
-
-              sp = sp - n;
-              stack[sp] = pack_node;
+            word* constr_node = allocate(CONSTR_NODE, 2 + n);
+            constr_node[1] = tag;
+            constr_node[2] = n;
+            for (int i = 0; i < n; i++) {
+              word* app_node = stack[sp - (i + 1)];
+              constr_node[3 + i] = app_node[2];
             }
-
+            // Update the root of the redex
+            sp = sp-n;
+            word* old_node = stack[sp];
+            // convert old node into indirection node
+            *old_node = make_header(IND_NODE, 1, Blue);
+            // set indirection node to point to the constructor node
+            old_node[1] = (word)constr_node;
             pc = GetPc(dump[dp--]);
             break;
           }
@@ -302,12 +315,9 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
       case PACK: {
         int tag = program[pc++];
         int n = program[pc++];
-        word* pack_node = allocate(PACK_NODE, 2 + n);
+        word* pack_node = allocate(PACK_NODE, 2);
         pack_node[1] = tag;
         pack_node[2] = n;
-        for (int i = 0; i < n; i++) {
-          pack_node[3 + i] = (word)NULL;
-        }
         stack[++sp] = pack_node;
         break;
       }
@@ -325,14 +335,31 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
       }
       case CASEJUMP: {
         int n = program[pc++];
-        word* pack_node = stack[sp];
+        // Question: Could there be a chain of indirection nodes here? Right now we assume only 0 or 1 indirection node
+        word* node = stack[sp];
+        word* constr_node;
+        switch GetTag(node[0]) {
+          case IND_NODE: {
+            word* ind_node = stack[sp];
+            constr_node = (word*)ind_node[1];
+            stack[sp] = constr_node;
+            break;
+          }
+          case CONSTR_NODE: {
+            constr_node = node;
+            break;
+          }
+          default: {
+            printf("Error: CASEJUMP on %s\n", tag_to_name(GetTag(node[0])));
+            exit(EXIT_FAILURE);
+          }
+        }
         int matched = 0;
-
         for (int i = 0; i < n * 2; i = i + 2) {
           int tag = program[pc + i];
           int lab = program[pc + i + 1];
 
-          if (tag == pack_node[1]) {
+          if (tag == constr_node[1]) {
             pc = lab;
             matched = 1;
             break;
@@ -360,7 +387,7 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
             pc = 1;
             break;
           }
-          case PACK_NODE: {
+          case CONSTR_NODE: {
             int n = node[2];
 
             for (int i = n + 2; i >= 3; i--) {
@@ -373,6 +400,12 @@ void execute_instructions(int* program, word** stack, dump_item* dump) {
 
             sp--;
             pc = 1;
+            break;
+          }
+          case IND_NODE: {
+            stack[sp] = (word*)node[1];
+            // go to global print again
+            pc = 2;
             break;
           }
           default: {
@@ -406,11 +439,24 @@ int main(int argc, char* argv[]) {
   int fileIndex = 1;
   int runValid = 1;
 
-  if (argc == 2) {
-  } else if (argc == 3 && strcmp(argv[1], "--verbose") == 0) {
+  if (argc == 2) { }
+  else if (argc == 3) {
     fileIndex = 2;
-    verbose = 1;
-  } else {
+    if (strcmp(argv[1], "--verbose") == 0) verbose = 1;
+    else if (strcmp(argv[1], "--manualstep") == 0) manualStep = 1;
+  }
+  else if (argc == 4) {
+    fileIndex = 3;
+    if (strcmp(argv[1], "--verbose") == 0 ||
+        strcmp(argv[2], "--verbose") == 0) {
+      verbose = 1;
+    }
+    if (strcmp(argv[1], "--manualstep") == 0 ||
+        strcmp(argv[2], "--manualstep") == 0) {
+      manualStep = 1;
+    }
+  }
+  else {
     runValid = 0;
   }
 

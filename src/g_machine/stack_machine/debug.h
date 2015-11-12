@@ -13,5 +13,6 @@ void print_instruction(int* instructions, int* pi);
 void print_node(word* node, int tab_factor, list_node* visited_nodes);
 void print_result(word* node);
 void print_stack(int sp, word** stack);
+char* tag_to_name(int tag);
 
 #endif

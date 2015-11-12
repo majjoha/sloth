@@ -120,9 +120,9 @@ void print_instruction(int* instructions, int* pi) {
       printf("CASEJUMP;");
       break;
     }
-	case PRINT: {
-	  printf("PRINT;");
-	  break;
+  	case PRINT: {
+  	  printf("PRINT;");
+  	  break;
     }
     default:
       printf("<unknown> ");
@@ -141,6 +141,8 @@ char* tag_to_name(int tag) {
       return "INDIRECTION NODE";
     case NULL_NODE:
       return "NULL NODE";
+    case CONSTR_NODE:
+      return "CONSTR_NODE";
     case PACK_NODE:
       return "PACK_NODE";
     default:
@@ -194,20 +196,21 @@ void print_node(word* node, int tab_factor, list_node* visited_nodes) {
       printf("\n");
       break;
     }
-    case PACK_NODE: {
+    case CONSTR_NODE: {
       printf("Tag %d, Arity %d\n", node[1], node[2]);
       if (node[2] != 0 && (word*)node[3] != NULL) {
-        // Print 1st node
-        for (int i = 0; i < tab_factor; i++) printf("\t");
-        printf("\t1st: ");
-        print_node((word*)node[3], tab_factor + 1, visited_nodes);
-
-        // Print 2nd node
-        for (int i = 0; i < tab_factor; i++) printf("\t");
-        printf("\t2nd: ");
-        print_node((word*)node[4], tab_factor + 1, visited_nodes);
+        for (int i = 0; i < node[2]; i++)
+        {
+          for (int j = 0; j < tab_factor; j++) printf("\t");
+            printf("\t%d: ", i);
+          print_node((word*)node[3 + i], tab_factor + 1, visited_nodes);
+        }
       }
 
+      break;
+    }
+    case PACK_NODE: {
+      printf("Tag %d, Arity %d\n", node[1], node[2]);
       break;
     }
     default: { exit(EXIT_FAILURE); }
@@ -238,9 +241,9 @@ void print_result(word* node) {
       printf("NULL_NODE\n");
       break;
     }
-    case PACK_NODE: {
+    case CONSTR_NODE: {
       int n = node[2];
-      printf("PACK_NODE\n");
+      printf("CONSTR_NODE\n");
       printf("TAG: %d\n", node[1]);
       for (int i = 0; i < n; i++) {
         print_result((word*)node[3 + i]);
