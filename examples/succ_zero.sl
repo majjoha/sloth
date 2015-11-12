@@ -1,7 +1,7 @@
-two succ zero = let one = succ zero in succ one;
+two succ zero = succ (succ zero);
 
-four succ zero = let three = let two = let one = succ zero in succ one in succ two in succ three;
+four succ zero = succ (succ (succ (succ zero)));
 
-add m n succ zero = let nsz = n succ zero in m succ nsz;
+add m n succ zero = m succ (n succ zero);
 
-main = let six = add two four in six
+main = add two four

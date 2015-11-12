@@ -1,1 +1,1 @@
-main = if (if 1 1 0) 42 75
+main = if (if pack(2,0) pack(2,0) pack(1,0)) 42 75

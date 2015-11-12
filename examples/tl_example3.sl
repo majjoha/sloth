@@ -5,5 +5,6 @@ K x y = x;
 K1 x y = y ;
 abort = abort ;
 
+hdn n list = if (n = 0) list (hd (hdn n-1 list)); 
 infinite x = letrec xs = cons x xs in xs ;
-main = hd (tl (infinite 4))
+main = hdn 100 (tl (infinite 4))

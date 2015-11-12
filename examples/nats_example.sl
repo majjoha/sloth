@@ -1,11 +1,11 @@
-map f xs = case xs of
-                1      -> nil;
-                2 x xr -> (f x) : (map f xr)
-                end;
+map f xs = 
+	case xs of
+    1      -> nil;
+    2 x xr -> (f x) : (map f xr)
+    end
+;
 
 add1 n = n+1;
-
-nats = 0 : map add1 nats;
 
 take n ls =
 	case ls of
@@ -14,4 +14,4 @@ take n ls =
 	end
 ;
 
-main = take 500 nats
+main = let nats = 0 : map add1 nats in take 400 nats

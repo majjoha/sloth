@@ -1,4 +1,4 @@
-main = (take 5 (sieve (from 2)));
+main = (take 10 (sieve (from 2)));
 
 from n = n : (from (n+1));
 
