@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <getopt.h>
+
 #include "debug.h"
 #include "stack_machine.h"
 #include "../../shared/mm/memory.h"
@@ -436,36 +439,38 @@ int execute(char* filename) {
 }
 
 int main(int argc, char* argv[]) {
-  int fileIndex = 1;
-  int runValid = 1;
+  int fileIndex;
+  int verbose = 0;
+  int manualStep = 0;
+  int c;
 
-  if (argc == 2) { }
-  else if (argc == 3) {
-    fileIndex = 2;
-    if (strcmp(argv[1], "--verbose") == 0) verbose = 1;
-    else if (strcmp(argv[1], "--manualstep") == 0) manualStep = 1;
-  }
-  else if (argc == 4) {
-    fileIndex = 3;
-    if (strcmp(argv[1], "--verbose") == 0 ||
-        strcmp(argv[2], "--verbose") == 0) {
-      verbose = 1;
+  // -v sets the verbose flag
+  // -m sets the manual flag for debugging, and the verbose flag
+  while ((c = getopt (argc, argv, "vm")) != -1) {
+    switch (c) {
+      case 'v':
+        verbose = 1;
+        break;
+      case 'm':
+        manualStep = 1;
+        verbose = 1;
+        break;
+      case '?':
+        fprintf(stderr, "Unknown option character `%c'.\n", optopt);
+        return 1;
+      default:
+        abort();
     }
-    if (strcmp(argv[1], "--manualstep") == 0 ||
-        strcmp(argv[2], "--manualstep") == 0) {
-      manualStep = 1;
-    }
-  }
-  else {
-    runValid = 0;
   }
 
-  if (runValid) {
+  for (fileIndex = optind; fileIndex < argc; fileIndex++) {
     execute(argv[fileIndex]);
     return 0;
-  } else {
+  }
+
+  if (fileIndex == argc) {
     printf("You need to pass a file to the stack machine.\n");
-    printf("Usage: stack_machine [--verbose] <program>\n");
+    printf("Usage: stack_machine [-vm] <program>\n");
     exit(EXIT_SUCCESS);
   }
 }
