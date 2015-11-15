@@ -14,7 +14,7 @@ word* afterHeap;
 word* freelist;
 int orphan_99_count = 0;
 
-word make_header(unsigned int tag, unsigned int length, unsigned int color) { 
+word make_header(unsigned int tag, unsigned int length, unsigned int color) {
   return (tag << 24) | (length << 2) | color;
 }
 
@@ -30,18 +30,18 @@ void init_heap(int heap_size) {
 // Call this after a GC to get heap statistics:
 void heapStatistics() {
   printf("Orphan 99 count: %d\n", orphan_99_count);
-  int blocks = 0, free = 0, orphans = 0, 
+  int blocks = 0, free = 0, orphans = 0,
     blocksSize = 0, freeSize = 0, largestFree = 0;
   word* heapPtr = heap;
   while (heapPtr < afterHeap) {
     if (GetLength(heapPtr[0]) > 0) {
       blocks++;
       blocksSize += GetLength(heapPtr[0]);
-    } else 
+    } else
       orphans++;
     word* nextBlock = heapPtr + GetLength(heapPtr[0]) + 1;
     if (nextBlock > afterHeap) {
-      printf("HEAP ERROR: block at heap[%d] extends beyond heap\n", 
+      printf("HEAP ERROR: block at heap[%d] extends beyond heap\n",
 	     heapPtr-heap);
       printf("Next block at heap[%d]\n", nextBlock-heap);
       exit(-1);
@@ -50,14 +50,14 @@ void heapStatistics() {
   }
   word* freePtr = freelist;
   while (freePtr != 0) {
-    free++; 
+    free++;
     int length = GetLength(freePtr[0]);
     if (length == 0)
     {
       printf("Something on the freelist has length 0!!\n");
     }
     if (freePtr < heap || afterHeap < freePtr+length+1) {
-      printf("HEAP ERROR: freelist item %d (at heap[%d], length %d) is outside heap\n", 
+      printf("HEAP ERROR: freelist item %d (at heap[%d], length %d) is outside heap\n",
 	     free, freePtr-heap, length);
       exit(-1);
     }
@@ -67,7 +67,7 @@ void heapStatistics() {
       printf("Non-blue block at heap[%d] on freelist\n", (int)freePtr);
     freePtr = (word*)freePtr[1];
   }
-  printf("Heap: %d blocks (%d words); of which %d free (%d words, largest %d words); %d orphans\n", 
+  printf("Heap: %d blocks (%d words); of which %d free (%d words, largest %d words); %d orphans\n",
 	 blocks, blocksSize, free, freeSize, largestFree, orphans);
 }
 
@@ -111,10 +111,14 @@ void mark(word* block)
       break;
     }
     case NULL_NODE:
-    { 
+    {
       break;
     }
     case PACK_NODE:
+    {
+      break;
+    }
+    case CONSTR_NODE:
     {
       int arity = block[2];
       for (int i = 0; i < arity; i++)
@@ -122,6 +126,10 @@ void mark(word* block)
         if ((word*) block[3+i] != NULL)
         {
           mark((word*) block[3+i]);
+        }
+        else
+        {
+          printf("Element of Constructor Node is NULL\n");
         }
       }
       break;
@@ -148,14 +156,13 @@ void sweepPhase() {
       {
         // Join together adjacent dead blocks
         word nextHeader = heapPtr[GetLength(heapPtr[0])+1];
-        if (GetColor(nextHeader) == White)
+        int length = GetLength(heapPtr[0]);
+        while (GetColor(nextHeader) == White)
         {
-          heapPtr[0] = make_header(0, GetLength(heapPtr[0])+GetLength(nextHeader)+1, Blue);
+          length = length + GetLength(nextHeader) + 1;
+          nextHeader = heapPtr[length+1];
         }
-        else
-        {
-          heapPtr[0] = Paint(heapPtr[0], Blue);
-        }
+        heapPtr[0] = make_header(99, length, Blue);
         // Add block to the front of the freelist
         heapPtr[1] = (word) freelist;
         freelist = heapPtr;
@@ -214,13 +221,13 @@ word* allocate_block(unsigned int tag, unsigned int length, word** s, int sp) {
 void convert_block_to_indirection_node(word* block)
 {
   int length = GetLength(block[0]);
-  int rest = length - 1;
+  int rest = length - 2;
   if (rest < 0)
   {
     printf("Trying to convert block of length %d to indirection node\n", length);
     exit(1);
   }
-  block[0] = make_header(IND_NODE, 1, White);
+  block[0] = make_header(IND_NODE, 2, White);
   if (rest == 0)
   {
     return;

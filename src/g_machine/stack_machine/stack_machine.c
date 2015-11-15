@@ -55,7 +55,7 @@ void execute_instructions(int* program, dump_item* dump) {
 
     switch (program[pc++]) {
       case PUSHGLOBAL: {
-        word* global_node = allocate(GLOBAL_NODE, 1);
+        word* global_node = allocate(GLOBAL_NODE, 2);
         global_node[1] = program[pc++];
         stack[++sp] = global_node;
         break;
@@ -67,7 +67,7 @@ void execute_instructions(int* program, dump_item* dump) {
         break;
       }
       case PUSHINT: {
-        word* integer_node = allocate(INTEGER_NODE, 1);
+        word* integer_node = allocate(INTEGER_NODE, 2);
         integer_node[1] = program[pc++];
         stack[++sp] = integer_node;
         break;
@@ -132,7 +132,7 @@ void execute_instructions(int* program, dump_item* dump) {
             sp = sp-n;
             word* old_node = stack[sp];
             // convert old node into indirection node
-            *old_node = make_header(IND_NODE, 1, Blue);
+            convert_block_to_indirection_node(old_node);
             // set indirection node to point to the constructor node
             old_node[1] = (word)constr_node;
             pc = GetPc(dump[dp--]);
@@ -188,9 +188,9 @@ void execute_instructions(int* program, dump_item* dump) {
       case ALLOC: {
         int n = program[pc++];
         for (int i = 0; i < n; i++) {
-          word* ind_node = allocate(IND_NODE, 1);
-          word* null_node = allocate(NULL_NODE, 0);
-          //word* null_node = NULL;
+          word* ind_node = allocate(IND_NODE, 2);
+          //word* null_node = allocate(NULL_NODE, 0);
+          word* null_node = NULL;
           ind_node[1] = (word) null_node;
           stack[++sp] = ind_node;
         }
@@ -216,7 +216,7 @@ void execute_instructions(int* program, dump_item* dump) {
       case ADD: {
         int a = unbox_integer(stack[sp--]);
         int b = unbox_integer(stack[sp]);
-        word* integer_node = allocate(INTEGER_NODE, 1);
+        word* integer_node = allocate(INTEGER_NODE, 2);
         integer_node[1] = a + b;
         stack[sp] = integer_node;
         break;
@@ -224,7 +224,7 @@ void execute_instructions(int* program, dump_item* dump) {
       case SUB: {
         int a = unbox_integer(stack[sp--]);
         int b = unbox_integer(stack[sp]);
-        word* integer_node = allocate(INTEGER_NODE, 1);
+        word* integer_node = allocate(INTEGER_NODE, 2);
         integer_node[1] = a - b;
         stack[sp] = integer_node;
         break;
@@ -232,7 +232,7 @@ void execute_instructions(int* program, dump_item* dump) {
       case MUL: {
         int a = unbox_integer(stack[sp--]);
         int b = unbox_integer(stack[sp]);
-        word* integer_node = allocate(INTEGER_NODE, 1);
+        word* integer_node = allocate(INTEGER_NODE, 2);
         integer_node[1] = a * b;
         stack[sp] = integer_node;
         break;
@@ -240,14 +240,14 @@ void execute_instructions(int* program, dump_item* dump) {
       case DIV: {
         int a = unbox_integer(stack[sp--]);
         int b = unbox_integer(stack[sp]);
-        word* integer_node = allocate(INTEGER_NODE, 1);
+        word* integer_node = allocate(INTEGER_NODE, 2);
         integer_node[1] = a / b;
         stack[sp] = integer_node;
         break;
       }
       case NEG: {
         int a = unbox_integer(stack[sp--]);
-        word* integer_node = allocate(INTEGER_NODE, 1);
+        word* integer_node = allocate(INTEGER_NODE, 2);
         integer_node[1] = -a;
         stack[sp] = integer_node;
         break;
@@ -255,7 +255,7 @@ void execute_instructions(int* program, dump_item* dump) {
       case EQ: {
         int a = unbox_integer(stack[sp--]);
         int b = unbox_integer(stack[sp]);
-        word* integer_node = allocate(INTEGER_NODE, 1);
+        word* integer_node = allocate(INTEGER_NODE, 2);
         integer_node[1] = (a == b);
         stack[sp] = integer_node;
         break;
@@ -263,7 +263,7 @@ void execute_instructions(int* program, dump_item* dump) {
       case NE: {
         int a = unbox_integer(stack[sp--]);
         int b = unbox_integer(stack[sp]);
-        word* integer_node = allocate(INTEGER_NODE, 1);
+        word* integer_node = allocate(INTEGER_NODE, 2);
         integer_node[1] = (a != b);
         stack[sp] = integer_node;
         break;
@@ -271,7 +271,7 @@ void execute_instructions(int* program, dump_item* dump) {
       case LE: {
         int a = unbox_integer(stack[sp--]);
         int b = unbox_integer(stack[sp]);
-        word* integer_node = allocate(INTEGER_NODE, 1);
+        word* integer_node = allocate(INTEGER_NODE, 2);
         integer_node[1] = (a <= b);
         stack[sp] = integer_node;
         break;
@@ -279,7 +279,7 @@ void execute_instructions(int* program, dump_item* dump) {
       case LT: {
         int a = unbox_integer(stack[sp--]);
         int b = unbox_integer(stack[sp]);
-        word* integer_node = allocate(INTEGER_NODE, 1);
+        word* integer_node = allocate(INTEGER_NODE, 2);
         integer_node[1] = (a < b);
         stack[sp] = integer_node;
         break;
@@ -287,7 +287,7 @@ void execute_instructions(int* program, dump_item* dump) {
       case GE: {
         int a = unbox_integer(stack[sp--]);
         int b = unbox_integer(stack[sp]);
-        word* integer_node = allocate(INTEGER_NODE, 1);
+        word* integer_node = allocate(INTEGER_NODE, 2);
         integer_node[1] = (a >= b);
         stack[sp] = integer_node;
         break;
@@ -295,7 +295,7 @@ void execute_instructions(int* program, dump_item* dump) {
       case GT: {
         int a = unbox_integer(stack[sp--]);
         int b = unbox_integer(stack[sp]);
-        word* integer_node = allocate(INTEGER_NODE, 1);
+        word* integer_node = allocate(INTEGER_NODE, 2);
         integer_node[1] = (a > b);
         stack[sp] = integer_node;
         break;
