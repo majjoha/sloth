@@ -440,8 +440,6 @@ int execute(char* filename) {
 
 int main(int argc, char* argv[]) {
   int fileIndex;
-  int verbose = 0;
-  int manualStep = 0;
   int c;
 
   // -v sets the verbose flag
