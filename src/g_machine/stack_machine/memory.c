@@ -8,11 +8,12 @@ The methods markPhase, sweepPhase and mark have been added by Mathias and Mads
 #include <stdio.h>
 #include "memory.h"
 #include "stack_machine.h"
+#include "debug.h"
 
 word* heap;
 word* afterHeap;
 word* freelist;
-int orphan_99_count = 0;
+int indirection_node_orphans = 0;
 
 word make_header(unsigned int tag, unsigned int length, unsigned int color) {
   return (tag << 24) | (length << 2) | color;
@@ -29,7 +30,7 @@ void init_heap(int heap_size) {
 
 // Call this after a GC to get heap statistics:
 void heapStatistics() {
-  printf("Orphan 99 count: %d\n", orphan_99_count);
+  printf("Orphans from conversion to indirection node: %d\n", indirection_node_orphans);
   int blocks = 0, free = 0, orphans = 0,
     blocksSize = 0, freeSize = 0, largestFree = 0;
   word* heapPtr = heap;
@@ -138,7 +139,7 @@ void mark(word* block)
 }
 
 void markPhase(word** s, int sp) {
-  printf("marking ...\n");
+  //printf("marking ...\n");
   for (int i = 0; i <= sp; i++)
   {
     word* p = s[i];
@@ -147,7 +148,7 @@ void markPhase(word** s, int sp) {
 }
 
 void sweepPhase() {
-  printf("sweeping ...\n");
+  //printf("sweeping ...\n");
   word* heapPtr = heap;
   while (heapPtr < afterHeap) {
     switch (GetColor(heapPtr[0]))
@@ -180,9 +181,9 @@ void sweepPhase() {
 
 void collect(word** s, int sp) {
   markPhase(s, sp);
-  heapStatistics();
+  //heapStatistics();
   sweepPhase();
-  heapStatistics();
+  //heapStatistics();
 }
 
 word* allocate_block(unsigned int tag, unsigned int length, word** s, int sp) {
@@ -215,6 +216,8 @@ word* allocate_block(unsigned int tag, unsigned int length, word** s, int sp) {
       collect(s, sp);
   } while (attempt++ == 1);
   printf("Out of memory\n");
+  printf("Trying to allocate block for tag %s with length %d\n", tag_to_name(tag), length);
+  heapStatistics();
   exit(1);
 }
 
@@ -236,7 +239,7 @@ void convert_block_to_indirection_node(word* block)
   {
     // Color orphan blue so it is not put on freelist
     block[2] = make_header(99, 0, Blue);
-    orphan_99_count++;
+    indirection_node_orphans++;
   }
   else
   {
