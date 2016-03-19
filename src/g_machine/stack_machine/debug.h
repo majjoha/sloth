@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../shared/mm/memory.h"
+#include "memory.h"
 #include "../../shared/read_file.h"
 #include "stack_machine.h"
 #include "linked_list.h"
