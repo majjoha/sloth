@@ -13,7 +13,6 @@
     | "of" -> OF
     | "pack" -> PACK
     | "end"  -> END
-    | "nil" -> NIL
     | _       -> IDENT s
 }
 

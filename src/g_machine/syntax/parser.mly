@@ -14,6 +14,7 @@
 %token RPAR
 %token EOF
 %token CONS HEAD TAIL NIL
+%token IF
 
 %right HEAD TAIL
 %right CONS
@@ -48,19 +49,19 @@ idents:
 ;
 
 expr:
-  | e1 = expr; PLUS; e2 = expr               { App(App(Var "add", e1), e2) }
-  | e1 = expr; MINUS; e2 = expr              { App(App(Var "sub", e1), e2) }
-  | e1 = expr; TIMES; e2 = expr              { App(App(Var "mul", e1), e2) }
-  | e1 = expr; DIV; e2 = expr                { App(App(Var "div", e1), e2) }
-  | e1 = expr; LT; e2 = expr                 { App(App(Var "lt", e1), e2) }
-  | e1 = expr; GT; e2 = expr                 { App(App(Var "gt", e1), e2) }
-  | e1 = expr; EQ; e2 = expr                 { App(App(Var "eq", e1), e2) }
-  | e1 = expr; NEQ; e2 = expr                { App(App(Var "neq", e1), e2) }
-  | e1 = expr; LE; e2 = expr                 { App(App(Var "le", e1), e2) }
-  | e1 = expr; GE; e2 = expr                 { App(App(Var "ge", e1), e2) }
-  | e1 = expr; AND; e2 = expr                { App(App(Var "and", e1), e2) }
-  | e1 = expr; OR; e2 = expr                 { App(App(Var "or", e1), e2) }
-  | MINUS; e = aexpr                         { App(Var "neg", e)          }
+  | e1 = expr; PLUS; e2 = expr               { Binop("+", e1, e2)   }
+  | e1 = expr; MINUS; e2 = expr              { Binop("-", e1, e2)   }
+  | e1 = expr; TIMES; e2 = expr              { Binop("*", e1, e2)   }
+  | e1 = expr; DIV; e2 = expr                { Binop("/", e1, e2)   }
+  | e1 = expr; LT; e2 = expr                 { Binop("<", e1, e2)   }
+  | e1 = expr; GT; e2 = expr                 { Binop(">", e1, e2)   }
+  | e1 = expr; EQ; e2 = expr                 { Binop("=", e1, e2)   }
+  | e1 = expr; NEQ; e2 = expr                { Binop("neq", e1, e2) }
+  | e1 = expr; LE; e2 = expr                 { Binop("le", e1, e2)  }
+  | e1 = expr; GE; e2 = expr                 { Binop("ge", e1, e2)  }
+  | e1 = expr; AND; e2 = expr                { Binop("and", e1, e2) }
+  | e1 = expr; OR; e2 = expr                 { Binop("or", e1, e2)  }
+  | MINUS; e = aexpr                         { Unop("-", e)         }
   | HEAD; e = expr                           { App(Sel(2, 1), e)      }
   | TAIL; e = expr                           { App(Sel(2, 2), e)      }
   | e1 = expr; CONS; e2 = expr               { App(App(Pack(2, 2), e1), e2) }
@@ -70,6 +71,7 @@ expr:
   | LETREC; d = defns; IN; e = expr          { Letrec(d, e)            }
   | CASE; e = expr; OF; a = alts; END        { Case(e, a)              }
   | NIL                                      { Pack(1, 0)              }
+  | IF; e1 = aexpr; e2 = aexpr; e3 = aexpr   { If(e1, e2, e3)          }
 ;
 
 aexpr:

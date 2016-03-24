@@ -28,7 +28,48 @@ let compPrim =
   ]
 ;;
 
-let rec compA (alt:alt) (label:string) (endLabel:string) (env:env) =
+let binopToScName (op:string) =
+  match op with
+  | "+" -> "add"
+  | "-" -> "sub"
+  | "*" -> "mul"
+  | "/" -> "div"
+  | "=" -> "eq"
+  | "neq" -> "neq"
+  | "<" -> "lt"
+  | ">" -> "gt"
+  | "ge" -> "ge"
+  | "le" -> "le"
+  | _    -> failwith ("Unknown binary operator: "^op)
+;;
+
+let binopToIns (op:string) =
+  match op with
+  | "+" -> Add  
+  | "-" -> Sub
+  | "*" -> Mul
+  | "/" -> Div
+  | "=" -> Eq
+  | "neq" -> Ne
+  | "<" -> Lt
+  | ">" -> Gt
+  | "ge" -> Ge
+  | "le" -> Le
+  | _    -> failwith ("Unknown binary operator: "^op)
+;;
+
+let rec compLet (env:env) (defns:(string * expr) list) (body:expr) (compBody:expr -> env -> instruction list) =
+  let compDefns = List.flatten (List.mapi (fun i (s, e) -> compC e (argOffset env i)) defns) in
+  let newEnv = (List.mapi (fun i (s, e) -> (s, i)) (List.rev defns)) @ argOffset env (List.length defns) in
+  compDefns @ (compBody body newEnv) @ [Slide (List.length defns)]
+
+and compLetrec (env:env) (defns:(string * expr) list) (body:expr) (compBody:expr -> env -> instruction list) =
+  let defnsLen = List.length defns in
+  let newEnv = (List.mapi (fun i (s, e) -> (s, i)) (List.rev defns)) @ argOffset env (List.length defns) in
+  let compDefns = List.flatten (List.mapi (fun i (s, e) -> compC e newEnv @ [Update (defnsLen - (i+1))]) defns) in
+  [Alloc (List.length defns)] @ compDefns @ (compBody body newEnv) @ [Slide (List.length defns)]
+
+and compA (alt:alt) (label:string) (endLabel:string) (env:env) =
   let (tag, vars, body) = alt in
   let n = List.length vars in
   let newEnv = ((List.mapi (fun i var -> (var, i))) vars) @ (argOffset env n) in
@@ -44,15 +85,8 @@ and compC (expr:expr) (env:env) =
   | Var s -> if inEnv env s then [Push (lookup env s)] else [Pushglobal s]
   | Num n -> [Pushint n]
   | App (e1, e2) -> compC e2 env @ compC e1 (argOffset env 1) @ [Mkap]
-  | Let (defns, body) -> 
-      let compDefns = List.flatten (List.mapi (fun i (s, e) -> compC e (argOffset env i)) defns) in
-      let newEnv = (List.mapi (fun i (s, e) -> (s, i)) (List.rev defns)) @ argOffset env (List.length defns) in
-      compDefns @ (compC body newEnv) @ [Slide (List.length defns)]
-  | Letrec (defns, body) ->
-      let defnsLen = List.length defns in
-      let newEnv = (List.mapi (fun i (s, e) -> (s, i)) (List.rev defns)) @ argOffset env (List.length defns) in
-      let compDefns = List.flatten (List.mapi (fun i (s, e) -> compC e newEnv @ [Update (defnsLen - (i+1))]) defns) in
-      [Alloc (List.length defns)] @ compDefns @ (compC body newEnv) @ [Slide (List.length defns)]
+  | Let (defns, body) -> compLet env defns body compC
+  | Letrec (defns, body) -> compLetrec env defns body compC
   | Case (e, alts) ->
       let compExpr = compC e env in
       let ls = List.map (fun (t, _, _) -> (t, newLabel())) alts in
@@ -60,8 +94,35 @@ and compC (expr:expr) (env:env) =
       compExpr @ [Eval; Casejump ls] @ (compAlts alts ls endLabel env)
   | Pack (t, a) ->
       [Pack (t, a)]
+  | Binop(op, e1, e2) -> 
+      compC e2 env 
+      @ compC e1 (argOffset env 1) 
+      @ [Pushglobal (binopToScName op); Mkap; Mkap]
+  | Unop(op, e) -> 
+      if op = "-" 
+      then compC e env @ [Pushglobal "neg"; Mkap]
+      else failwith ("Unknown unary operator: "^op) 
+  | If(e1, e2, e3) ->
+      compC e3 env
+      @ compC e2 (argOffset env 1)
+      @ compC e1 (argOffset env 2)
+      @ [Pushglobal "if"; Mkap; Mkap; Mkap]
   | _ -> failwith "Unimplemented expression type."
 ;;
+
+let rec compE (expr:expr) (env:env) =
+  match expr with
+  | Let (defns, body) -> compLet env defns body compE
+  | Letrec (defns, body) -> compLetrec env defns body compE
+  | Binop(op, e1, e2) -> 
+    compE e2 env @ compE e1 (argOffset env 1) @ [binopToIns op]
+  | Unop(op, e) ->
+    (match op with
+    | "-" -> compE e env @ [Neg]
+    | _ -> failwith ("Unknown unary operator: "^op))
+  | If(e1,e2,e3) ->
+    compE e1 env @  [Jfalse "L1"] @ compE e2 env @ [Jfalse "L2"; Label "L1"] @ compE e3 env @ [Label "L2"; Update 0]
+  | _ -> compC expr env
 
 let rec compR (expr:expr) (env:env) =
   let n = List.length env in
